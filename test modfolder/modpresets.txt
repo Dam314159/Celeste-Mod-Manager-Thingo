@@ -1,0 +1,15 @@
+# This is the file used to save mod presets.
+# File generated through the "Manage Installed Mods" screen in Olympus
+
+**Preset 1
+Mod1.zip
+Mod2.zip
+Mod3.zip
+Mod4.zip
+
+**Preset 2
+Mod1.zip
+Mod2.zip
+Mod3.zip
+Mod4.zip
+Mod6.zip

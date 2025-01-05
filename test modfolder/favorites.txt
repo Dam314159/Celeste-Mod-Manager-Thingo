@@ -1,0 +1,4 @@
+# This is the favorite list. Lines starting with # are ignored.
+
+Mod1.zip
+Mod6.zip

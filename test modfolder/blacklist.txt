@@ -1,0 +1,8 @@
+# This is the blacklist. Lines starting with # are ignored.
+# File generated through the "Manage Installed Mods" screen in Olympus
+
+Mod1.zip
+Mod2.zip
+Mod3.zip
+Mod4.zip
+# Mod6.zip
