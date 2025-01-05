@@ -35,6 +35,7 @@ int main() {
     mods.insert({"mod2", ModAttribute(false, {"mod5"})});
     mods.insert({"mod3", ModAttribute()});
     mods.insert({"mod4", ModAttribute()});
+    mods.insert({"mod6", ModAttribute(true)});
 
     for (const auto &[key, value] : mods) {
         std::cout << "Mod name: " << key << '\n';
