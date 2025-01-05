@@ -12,9 +12,9 @@
                 "-o",
                 "${fileDirname}\\${fileBasenameNoExtension}.exe",
                 "-I",
-                ".\\miniz",
+                "${workspaceFolder}\\miniz",
                 "-xc",
-                ".\\miniz\\miniz.c"
+                "${workspaceFolder}\\miniz\\miniz.c"
             ],
             "options": {
                 "cwd": "${fileDirname}"
