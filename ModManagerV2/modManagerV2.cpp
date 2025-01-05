@@ -6,31 +6,31 @@
 #include "miniz.h"  //Credit to richgel999 on GitHub for the miniz library
 
 // Custom datatype to store mod attributes
-class ModAttribute {
-   public:
-    bool isFavourite;
-    std::set<std::string> dependencies;
-    bool isEnabled;
+#include "ModAttribute.h"
+public:
+bool isFavourite;
+std::set<std::string> dependencies;
+bool isEnabled;
 
-    ModAttribute(bool isFavourite = false, std::set<std::string> dependencies = {}, bool isEnabled = false)
-        : isFavourite(isFavourite), dependencies(dependencies), isEnabled(isEnabled) {}
+ModAttribute(bool isFavourite = false, std::set<std::string> dependencies = {}, bool isEnabled = false)
+    : isFavourite(isFavourite), dependencies(dependencies), isEnabled(isEnabled) {}
 
-    void print(int indent) const {
-        std::string spaces(indent, ' ');
-        std::cout << spaces << "Is Favourite: " << (isFavourite ? "True" : "False") << '\n';
-        std::cout << spaces << "Dependencies:\n";
-        for (const auto &dependency : dependencies) {
-            std::cout << spaces << spaces << dependency << '\n';
-        }
-        std::cout << spaces << "Is Enabled: " << (isEnabled ? "True" : "False") << "\n\n";
+void print(int indent) const {
+    std::string spaces(indent, ' ');
+    std::cout << spaces << "Is Favourite: " << (isFavourite ? "True" : "False") << '\n';
+    std::cout << spaces << "Dependencies:\n";
+    for (const auto &dependency : dependencies) {
+        std::cout << spaces << spaces << dependency << '\n';
     }
-};
+    std::cout << spaces << "Is Enabled: " << (isEnabled ? "True" : "False") << "\n\n";
+}
+}
+;
 
 // Optional
 // ↳ Handle mod options order, updater blacklist
 
 // GLOBAL STATE = [state, substate, tracker]
-std::vector<std::vector<std::string>> GLOBAL_STATE;
 // SETTINGS = mods folder, display presets?
 
 // f : Setup
@@ -172,3 +172,8 @@ std::vector<std::vector<std::string>> GLOBAL_STATE;
 //     ↳ exit
 // ↳ for(dependency in itsDependencies)
 //     ↳ RUN togglemod(dependency, dependency[dependencies], onOrOff)
+
+int main() {
+    std::cout << "Hello, World!" << std::endl;
+    return 0;
+}
