@@ -4,6 +4,8 @@
 #include <set>
 #include <string>
 
+namespace ModAttribute {
+
 class ModAttribute {
    public:
     ModAttribute(bool isFavourite = false, std::set<std::string> dependencies = {}, bool isEnabled = false);
@@ -20,5 +22,7 @@ class ModAttribute {
     std::set<std::string> dependencies;
     bool isEnabled;
 };
+
+}  // namespace ModAttribute
 
 #endif

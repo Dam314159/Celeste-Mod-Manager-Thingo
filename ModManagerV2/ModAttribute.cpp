@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+namespace ModAttribute {
+
 ModAttribute::ModAttribute(bool isFavourite, std::set<std::string> dependencies, bool isEnabled)
     : isFavourite(isFavourite), dependencies(dependencies), isEnabled(isEnabled) {}
 
@@ -37,4 +39,6 @@ bool ModAttribute::getIsEnabled() const {
 
 void ModAttribute::setIsEnabled(bool isEnabled) {
     this->isEnabled = isEnabled;
+}
+
 }
