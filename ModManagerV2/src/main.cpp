@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include "ConsoleStuff.h"
+#include "Logger.h"
 #include "miniz.h"  //Credit to richgel999 on GitHub for the miniz library
 
 // Custom datatype to store mod attributes
@@ -14,30 +16,19 @@
 // GLOBAL STATE = [state, substate, tracker]
 #include "StateHandler.h"
 
-int main() {
-    ModAttribute mod1(true, true, {"mod2", "mod3", "mod4"});
-
-    mod1.print("mod1", 2);
-
-    state::setState("1", "1", {});
-    state::updateState("2", "2");
-    state::updateState("3", "3");
-    state::returnToPreviousState();
-    std::cout << state::getState() << ", " << state::getSubState() << '\n';
-
-    return 0;
-}
-
 // SETTINGS = mods folder, display presets?
 
 // f : Setup
-// ↳ Get all mod names by reading names of zip files
-// ↳ Load names into custom datatype map<string, <map<string, bool>, map<string, unordered_set> [A]
-// ↳ From favourites.txt load into [A]
-// ↳ Get dependencies by unzipping mod zips and reading everst.yaml
-// ↳ Load dependencies into [A]
-// ↳ Get presets from modpresets
-// ↳ Load into a dict<string, set>[C]
+void setup() {
+    logger::init();
+    // ↳ Get all mod names by reading names of zip files
+    // ↳ Load names into custom datatype map<string, <map<string, bool>, map<string, unordered_set> [A]
+    // ↳ From favourites.txt load into [A]
+    // ↳ Get dependencies by unzipping mod zips and reading everst.yaml
+    // ↳ Load dependencies into [A]
+    // ↳ Get presets from modpresets
+    // ↳ Load into a dict<string, set>[C]
+}
 
 // Main Menu
 // ↳ Display Text
@@ -169,3 +160,8 @@ int main() {
 //     ↳ exit
 // ↳ for(dependency in itsDependencies)
 //     ↳ RUN togglemod(dependency, dependency[dependencies], onOrOff)
+
+int main() {
+    setup();
+    return 0;
+}
