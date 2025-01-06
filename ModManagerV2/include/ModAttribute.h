@@ -6,14 +6,14 @@
 
 class ModAttribute {
    public:
-    ModAttribute(bool isFavourite, bool isEnabled, std::set<std::string> dependencies);
-    void print(std::string modName, int indent) const;
+    ModAttribute(const bool &isFavourite, const bool &isEnabled, const std::set<std::string> &dependencies);
+    void print(const std::string &modName, const int &indent) const;
     bool getIsFavourite() const;
-    void setIsFavourite(bool isFavourite);
+    void setIsFavourite(const bool &isFavourite);
     std::set<std::string> getDependencies() const;
-    void addDependency(std::string dependency);
+    void addDependency(const std::string &dependency);
     bool getIsEnabled() const;
-    void setIsEnabled(bool isEnabled);
+    void setIsEnabled(const bool &isEnabled);
 
    private:
     bool isFavourite;
