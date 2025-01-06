@@ -6,9 +6,9 @@
 
 namespace colour {
 
-void cout(std::string text, std::string colour);
+void cout(const std::string &text, const std::string &colour);
 
-void cerr(std::string text, std::string colour);
+void cerr(const std::string &text, const std::string &colour);
 
 }  // namespace colour
 
