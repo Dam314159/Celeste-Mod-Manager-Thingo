@@ -8,8 +8,8 @@
 
 namespace state {
 
-void updateState(std::string newState, std::string newSubState);
-void setState(std::string newState, std::string newSubstate, std::stack<std::pair<std::string, std::string>> newTracker);
+void updateState(const std::string &newState, const std::string &newSubstate);
+void setState(const std::string &newState, const std::string &newSubstate, std::stack<std::pair<std::string, std::string>> newTracker);
 void returnToPreviousState();
 std::string getState();
 std::string getSubState();

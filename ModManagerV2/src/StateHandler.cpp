@@ -1,19 +1,31 @@
 #include "StateHandler.h"
 
+#include "Logger.h"
+
 namespace state {
 
 static std::string state;
-static std::string subState;
+static std::string substate;
 static std::stack<std::pair<std::string, std::string>> tracker;
 
-void updateState(std::string newState, std::string newSubState) {
-    tracker.push({state, subState});
+void updateState(const std::string &newState, const std::string &newSubstate) {
+    tracker.push({state, substate});
     state = newState;
-    subState = newSubState;
+    substate = newSubstate;
+    logger::log("StateHandler.cpp, updateState", "State updated to " + newState + ", " + newSubstate);
 }
-void setState(std::string newState, std::string newSubstate, std::stack<std::pair<std::string, std::string>> newTracker) {
+
+void setState(const std::string &newState, const std::string &newSubstate, std::stack<std::pair<std::string, std::string>> newTracker) {
     state = newState;
-    subState = newSubstate;
+    substate = newSubstate;
+    logger::log("StateHandler.cpp, updateState", "State set to " + newState + ", " + newSubstate);
+    std::string loggerText = "";
+    while (!newTracker.empty()) {
+        const auto &state = newTracker.top();
+        loggerText += state.first + ", " + state.second + " -> ";
+        newTracker.pop();
+    }
+    logger::log("StateHandler.cpp, updateState", "Tracker set to " + loggerText);
 }
 
 void returnToPreviousState() {
@@ -21,15 +33,18 @@ void returnToPreviousState() {
         throw std::runtime_error("Tracker is empty, cannot return to previous state");
     }
     state = tracker.top().first;
-    subState = tracker.top().second;
+    substate = tracker.top().second;
     tracker.pop();
 }
+
 std::string getState() {
     return state;
 };
+
 std::string getSubState() {
-    return subState;
+    return substate;
 };
+
 std::stack<std::pair<std::string, std::string>> getTracker() {
     return tracker;
 };
