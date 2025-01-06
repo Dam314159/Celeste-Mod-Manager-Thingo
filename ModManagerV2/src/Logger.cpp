@@ -7,15 +7,15 @@ namespace fs = std::filesystem;
 
 #include "ConsoleStuff.h"
 
-fs::path filePath = fs::current_path() / "log.txt";
+fs::path logFilePath = fs::current_path() / "log.txt";
 
 namespace logger {
 
 void init() {
-    fs::remove(filePath);
-    std::ofstream logFile(filePath);
+    fs::remove(logFilePath);
+    std::ofstream logFile(logFilePath);
     if (logFile.is_open()) {
-        logFile << "From \"Logger.cpp, init()\": \"Log file created.\"\n";
+        logFile << "[Logger.cpp, init()]: \"Log file created.\"\n";
     } else {
         colour::cerr("WARNING: Log file not created.\n", "YELLOW");
     }
@@ -23,8 +23,8 @@ void init() {
 }
 
 void log(const std::string &location, const std::string &text) {
-    std::ofstream logFile(filePath, std::ios::app);
-    logFile << "From \"" << location << "\": \"" << text << "\"\n";
+    std::ofstream logFile(logFilePath, std::ios::app);
+    logFile << "[" << location << "]: \"" << text << "\"\n";
 }
 
 }  // namespace logger
