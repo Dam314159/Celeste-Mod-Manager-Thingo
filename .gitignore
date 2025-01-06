@@ -1,5 +1,4 @@
-**/cpp.exe
+**/*.exe
+
 **/cpp.cpp
-**/modManager.exe
-**/modManagerV2.exe
 **/everest.yaml example.txt
