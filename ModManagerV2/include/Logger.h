@@ -7,7 +7,7 @@ namespace logger {
 
 void init();
 
-void log(std::string location, std::string text);
+void log(const std::string &location, const std::string &text);
 
 }  // namespace logger
 
