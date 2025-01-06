@@ -14,4 +14,6 @@ void cerr(const std::string &text, const std::string &colour);
 
 void cls();
 
+void exitOnEnterPress(const int &exitCode, const std::string &message);
+
 #endif

@@ -36,5 +36,11 @@ void cls() {
     system("clear");
 #endif
     logger::log("ConsoleStuff.cpp, cls", "Cleared console screen.");
+}
 
-}  // namespace console
+void exitOnEnterPress(const int &exitCode, const std::string &message) {
+    std::cout << "Press Enter to exit...";
+    std::cin.get();
+    logger::log("ConsoleStuff.cpp, exitOnEnterPress", "Exited with code " + std::to_string(exitCode) + ". " + message);
+    exit(exitCode);
+}
