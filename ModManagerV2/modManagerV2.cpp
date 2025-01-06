@@ -12,6 +12,7 @@
 // ↳ Handle mod options order, updater blacklist
 
 // GLOBAL STATE = [state, substate, tracker]
+
 // SETTINGS = mods folder, display presets?
 
 // f : Setup
@@ -153,8 +154,3 @@
 //     ↳ exit
 // ↳ for(dependency in itsDependencies)
 //     ↳ RUN togglemod(dependency, dependency[dependencies], onOrOff)
-
-int main() {
-    std::cout << "Hello, World!" << std::endl;
-    return 0;
-}
