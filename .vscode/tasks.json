@@ -13,6 +13,7 @@
                 "${workspaceFolder}\\ModManagerV2\\src\\StateHandler.cpp",
                 "${workspaceFolder}\\ModManagerV2\\src\\ConsoleStuff.cpp",
                 "${workspaceFolder}\\ModManagerV2\\src\\Logger.cpp",
+                "${workspaceFolder}\\ModManagerV2\\src\\SettingsHandler.cpp",
                 "-o",
                 "${fileDirname}\\${fileBasenameNoExtension}.exe",
                 "-I",
