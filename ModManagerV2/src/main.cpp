@@ -5,6 +5,7 @@
 
 #include "ConsoleStuff.h"
 #include "Logger.h"
+#include "SettingsHandler.h"
 #include "miniz.h"  //Credit to richgel999 on GitHub for the miniz library
 
 // Custom datatype to store mod attributes
@@ -21,6 +22,7 @@
 // f : Setup
 void setup() {
     logger::init();
+    settings::init();
     // ↳ Get all mod names by reading names of zip files
     // ↳ Load names into custom datatype map<string, <map<string, bool>, map<string, unordered_set> [A]
     // ↳ From favourites.txt load into [A]
