@@ -5,13 +5,14 @@
             "label": "C/C++: g++.exe build active file",
             "command": "C:\\msys64\\ucrt64\\bin\\g++.exe",
             "args": [
-                "-std=c++20", //*
-                "-DDEBUG", //*/
+                "-std=c++20",
                 "-fdiagnostics-color=always",
                 "-g",
                 "${file}",
                 "${workspaceFolder}\\ModManagerV2\\src\\ModAttribute.cpp",
                 "${workspaceFolder}\\ModManagerV2\\src\\StateHandler.cpp",
+                "${workspaceFolder}\\ModManagerV2\\src\\ConsoleStuff.cpp",
+                "${workspaceFolder}\\ModManagerV2\\src\\Logger.cpp",
                 "-o",
                 "${fileDirname}\\${fileBasenameNoExtension}.exe",
                 "-I",
