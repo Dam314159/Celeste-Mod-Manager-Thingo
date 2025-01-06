@@ -5,16 +5,19 @@
             "label": "C/C++: g++.exe build active file",
             "command": "C:\\msys64\\ucrt64\\bin\\g++.exe",
             "args": [
-                "-std=c++20",
+                "-std=c++20", //*
+                "-DDEBUG", //*/
                 "-fdiagnostics-color=always",
                 "-g",
-                "${workspaceFolder}\\ModManagerV2\\main.cpp",
-                "${workspaceFolder}\\ModManagerV2\\ModAttribute.cpp",
-                "${workspaceFolder}\\ModManagerV2\\StateHandler.cpp",
+                "${file}",
+                "${workspaceFolder}\\ModManagerV2\\src\\ModAttribute.cpp",
+                "${workspaceFolder}\\ModManagerV2\\src\\StateHandler.cpp",
                 "-o",
                 "${fileDirname}\\${fileBasenameNoExtension}.exe",
                 "-I",
                 "${workspaceFolder}\\miniz",
+                "-I",
+                "${workspaceFolder}\\ModManagerV2\\include",
                 "-xc",
                 "${workspaceFolder}\\miniz\\miniz.c"
             ],
