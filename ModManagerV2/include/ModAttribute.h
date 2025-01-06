@@ -6,8 +6,8 @@
 
 class ModAttribute {
    public:
-    ModAttribute(bool isFavourite = false, std::set<std::string> dependencies = {}, bool isEnabled = false);
-    void print(int indent) const;
+    ModAttribute(bool isFavourite, bool isEnabled, std::set<std::string> dependencies);
+    void print(std::string modName, int indent) const;
     bool getIsFavourite() const;
     void setIsFavourite(bool isFavourite);
     std::set<std::string> getDependencies() const;

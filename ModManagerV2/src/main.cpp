@@ -14,6 +14,20 @@
 // GLOBAL STATE = [state, substate, tracker]
 #include "StateHandler.h"
 
+int main() {
+    ModAttribute mod1(true, true, {"mod2", "mod3", "mod4"});
+
+    mod1.print("mod1", 2);
+
+    state::setState("1", "1", {});
+    state::updateState("2", "2");
+    state::updateState("3", "3");
+    state::returnToPreviousState();
+    std::cout << state::getState() << ", " << state::getSubState() << '\n';
+
+    return 0;
+}
+
 // SETTINGS = mods folder, display presets?
 
 // f : Setup

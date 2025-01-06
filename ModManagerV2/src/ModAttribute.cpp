@@ -2,11 +2,12 @@
 
 #include <iostream>
 
-ModAttribute::ModAttribute(bool isFavourite, std::set<std::string> dependencies, bool isEnabled)
+ModAttribute::ModAttribute(bool isFavourite = false, bool isEnabled = false, std::set<std::string> dependencies = {})
     : isFavourite(isFavourite), dependencies(dependencies), isEnabled(isEnabled) {}
 
-void ModAttribute::print(int indent) const {
+void ModAttribute::print(std::string modName, int indent) const {
     std::string spaces(indent, ' ');
+    std::cout << "Mod Name: " << modName << '\n';
     std::cout << spaces << "Is Favourite: " << (isFavourite ? "True" : "False") << '\n';
     std::cout << spaces << "Dependencies:\n";
     for (const auto &dependency : dependencies) {
