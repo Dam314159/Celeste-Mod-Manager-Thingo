@@ -7,9 +7,9 @@ namespace fs = std::filesystem;
 #include "json.hpp"  //credit to nlohmann on GitHub for the json handler library
 using json = nlohmann::json;
 
-void init() {
-    fs::path filePath = fs::current_path() / "settings.json";
+fs::path filePath = fs::current_path() / "settings.json";
 
+void init() {
     std::ifstream settingsFile(filePath);
     if (settingsFile.is_open()) {
         std::cout << "open";
