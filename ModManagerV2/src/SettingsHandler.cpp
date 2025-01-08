@@ -15,6 +15,7 @@ fs::path settingsFilePath = fs::current_path() / "settings.json";
 json config;
 
 namespace settings {
+
 void init() {
     std::ifstream settingsFile(settingsFilePath);
     if (settingsFile.is_open()) {
