@@ -1,6 +1,5 @@
 **/*.exe
+**/*.txt
 
 **/cpp.cpp
-**/everest.yaml example.txt
-**/log.txt
 **/settings.json
