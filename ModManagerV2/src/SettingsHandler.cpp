@@ -12,9 +12,10 @@ namespace fs = std::filesystem;
 using json = nlohmann::json;
 
 fs::path settingsFilePath = fs::current_path() / "settings.json";
-json config;
 
 namespace settings {
+
+json config;
 
 void init() {
     std::ifstream settingsFile(settingsFilePath);
@@ -50,6 +51,10 @@ void init() {
         }
         settingsFile.close();
     }
+}
+
+json getSettings() {
+    return config;
 }
 
 }  // namespace settings

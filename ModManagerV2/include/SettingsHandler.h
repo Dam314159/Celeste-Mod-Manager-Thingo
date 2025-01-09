@@ -3,9 +3,13 @@
 
 #include <string>
 
+#include "json.hpp"
+
 namespace settings {
 
 void init();
+
+nlohmann::json getSettings();
 
 }  // namespace settings
 

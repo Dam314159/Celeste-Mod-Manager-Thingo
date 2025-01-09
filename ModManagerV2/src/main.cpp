@@ -23,6 +23,7 @@
 void setup() {
     logger::init();
     settings::init();
+    std::cout << settings::getSettings().dump(4) << '\n';
     // ↳ Get all mod names by reading names of zip files
     // ↳ Load names into custom datatype map<string, <map<string, bool>, map<string, unordered_set> [A]
     // ↳ From favourites.txt load into [A]
