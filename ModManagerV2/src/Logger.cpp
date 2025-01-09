@@ -23,6 +23,11 @@ std::string getCurrentTimeStamp() {
     return ss.str();
 }
 
+std::string formatString(std::string text) {
+    text = std::regex_replace(text, std::regex("\n"), "\\n");
+    return text;
+}
+
 void log(const std::vector<std::string> &location, const std::string &text) {
     std::ofstream logFile(logFilePath, std::ios::app);
     std::stringstream ss;
@@ -31,7 +36,7 @@ void log(const std::vector<std::string> &location, const std::string &text) {
     for (const std::string &loc : location) {
         ss << "[" << loc << "] ";
     }
-    ss << text << "\n";
+    ss << formatString(text) << "\n";
 
     if (logFile.is_open()) {
         logFile << ss.str();
@@ -52,7 +57,7 @@ void warn(const std::vector<std::string> &location, const std::string &text) {
     for (const std::string &loc : location) {
         ss << "[" << loc << "] ";
     }
-    ss << text << "\n";
+    ss << formatString(text) << "\n";
 
     if (logFile.is_open()) {
         logFile << ss.str();
@@ -73,7 +78,7 @@ void error(const std::vector<std::string> &location, const std::string &text) {
     for (const std::string &loc : location) {
         ss << "[" << loc << "] ";
     }
-    ss << text << "\n";
+    ss << formatString(text) << "\n";
 
     if (logFile.is_open()) {
         logFile << ss.str();

@@ -23,7 +23,16 @@
 void setup() {
     logger::init();
     settings::init();
-    std::cout << settings::getSettings().dump(4) << '\n';
+    if (settings::getSettings()["modsFolder"].empty()) {
+        colour::cout("It seems like your mods folder is not specified. Please enter your mods folder path below.\n", "DEFAULT");
+        colour::cout("You can find the mod folder by going to Olympus -> Manage installed mods -> Open mods folder, then copy and pasting the file path here.\n\n", "DEFAULT");
+        colour::cout("If you're still unsure, try \"C:\\Program Files (x86)\\Steam\\steamapps\\common\\Celeste\\Mods\" for Windows.\n", "DEFAULT");
+        std::string modsFolderPath = ask(
+            "Enter your mods folder path:",
+            [](std::string input) { return fs::exists(input); },
+            [](std::string input) { return "Invalid path. Please try again."; });
+        settings::updateSettings<std::string>("modsFolder", modsFolderPath);
+    }
     // ↳ Get all mod names by reading names of zip files
     // ↳ Load names into custom datatype map<string, <map<string, bool>, map<string, unordered_set> [A]
     // ↳ From favourites.txt load into [A]

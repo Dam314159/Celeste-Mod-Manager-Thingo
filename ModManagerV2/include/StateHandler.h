@@ -1,5 +1,5 @@
-#ifndef GLOBALSTATEHANDLER_H
-#define GLOBALSTATEHANDLER_H
+#ifndef STATEHANDLER_H
+#define STATEHANDLER_H
 
 #include <stack>
 #include <stdexcept>
