@@ -1,12 +1,8 @@
 #include "ModAttribute.h"
 
-#include <iostream>
-
-#include "Logger.h"
-
 ModAttribute::ModAttribute(const bool &isFavourite = false, const bool &isEnabled = false, const std::set<std::string> &dependencies = {})
     : isFavourite(isFavourite), dependencies(dependencies), isEnabled(isEnabled) {
-    logger::log("ModAttribute.cpp, ModAttribute", "Created ModAttribute object.");
+    logger::log({"ModAttribute.cpp", "ModAttribute"}, "Created ModAttribute object.");
 }
 
 // debug use only
@@ -19,6 +15,7 @@ void ModAttribute::print(const std::string &modName, const int &indent) const {
         std::cout << spaces << spaces << dependency << '\n';
     }
     std::cout << spaces << "Is Enabled: " << (isEnabled ? "True" : "False") << "\n\n";
+    logger::log({"ModAttribute.cpp", "print"}, "Called print.");
 }
 
 bool ModAttribute::getIsFavourite() const {

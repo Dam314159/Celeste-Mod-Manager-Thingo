@@ -1,7 +1,5 @@
 #include "StateHandler.h"
 
-#include "Logger.h"
-
 namespace state {
 
 static std::string state;
@@ -12,20 +10,20 @@ void updateState(const std::string &newState, const std::string &newSubstate) {
     tracker.push({state, substate});
     state = newState;
     substate = newSubstate;
-    logger::log("StateHandler.cpp, updateState", "State updated to " + newState + ", " + newSubstate);
+    logger::log({"StateHandler.cpp", "updateState"}, "State updated to " + newState + ", " + newSubstate);
 }
 
 void setState(const std::string &newState, const std::string &newSubstate, std::stack<std::pair<std::string, std::string>> newTracker) {
     state = newState;
     substate = newSubstate;
-    logger::log("StateHandler.cpp, updateState", "State set to " + newState + ", " + newSubstate);
+    logger::log({"StateHandler.cpp", "updateState"}, "State set to " + newState + ", " + newSubstate);
     std::string loggerText = "";
     while (!newTracker.empty()) {
         const auto &state = newTracker.top();
         loggerText += state.first + ", " + state.second + " -> ";
         newTracker.pop();
     }
-    logger::log("StateHandler.cpp, updateState", "Tracker set to " + loggerText);
+    logger::log({"StateHandler.cpp, updateState"}, "Tracker set to " + loggerText);
 }
 
 void returnToPreviousState() {

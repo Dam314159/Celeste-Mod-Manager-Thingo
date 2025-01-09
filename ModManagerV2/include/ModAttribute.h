@@ -1,8 +1,11 @@
 #ifndef MODATTRIBUTE_H
 #define MODATTRIBUTE_H
 
+#include <iostream>
 #include <set>
 #include <string>
+
+#include "Logger.h"
 
 class ModAttribute {
    public:

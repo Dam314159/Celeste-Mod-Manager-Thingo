@@ -6,6 +6,8 @@
 #include <string>
 #include <utility>
 
+#include "Logger.h"
+
 namespace state {
 
 void updateState(const std::string &newState, const std::string &newSubstate);
