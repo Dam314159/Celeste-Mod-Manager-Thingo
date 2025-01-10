@@ -35,7 +35,7 @@ void cls() {
 }
 
 void exitOnEnterPress(const int &exitCode, const std::string &message) {
-    std::cout << "Press enter to exit...";
+    colour::cout("Press enter to exit...", "DEFAULT");
     std::cin.get();
     if (exitCode == 0) {
         logger::log({"ConsoleStuff.cpp", "exitOnEnterPress"}, "Exited with code 0. " + message);

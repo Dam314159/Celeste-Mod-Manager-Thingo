@@ -9,17 +9,17 @@
 
 class ModAttribute {
    public:
-    ModAttribute(const bool &isFavourite = false, const bool &isEnabled = false, const std::set<std::string> &dependencies = {});
+    ModAttribute(const bool &isfavorite = false, const bool &isEnabled = false, const std::set<std::string> &dependencies = {});
     void print(const std::string &modName, const int &indent) const;
-    bool getIsFavourite() const;
-    void setIsFavourite(const bool &isFavourite);
+    bool getIsfavorite() const;
+    void setIsfavorite(const bool &isfavorite);
     std::set<std::string> getDependencies() const;
     void addDependency(const std::string &dependency);
     bool getIsEnabled() const;
     void setIsEnabled(const bool &isEnabled);
 
    private:
-    bool isFavourite;
+    bool isfavorite;
     std::set<std::string> dependencies;
     bool isEnabled;
 };

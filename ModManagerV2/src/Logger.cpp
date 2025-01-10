@@ -52,6 +52,7 @@ void log(const std::vector<std::string> &location, const std::string &text) {
         std::cin.get();
         exit(1);
     }
+    logFile.close();
 }
 
 void warn(const std::vector<std::string> &location, const std::string &text) {
@@ -73,6 +74,7 @@ void warn(const std::vector<std::string> &location, const std::string &text) {
         std::cin.get();
         exit(1);
     }
+    logFile.close();
 }
 
 void error(const std::vector<std::string> &location, const std::string &text) {
@@ -94,6 +96,7 @@ void error(const std::vector<std::string> &location, const std::string &text) {
         std::cin.get();
         exit(1);
     }
+    logFile.close();
 }
 
 }  // namespace logger

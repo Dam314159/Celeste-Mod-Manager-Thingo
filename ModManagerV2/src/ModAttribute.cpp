@@ -1,15 +1,15 @@
 #include "ModAttribute.h"
 
-ModAttribute::ModAttribute(const bool &isFavourite, const bool &isEnabled, const std::set<std::string> &dependencies)
-    : isFavourite(isFavourite), isEnabled(isEnabled), dependencies(dependencies) {
-    logger::log({"ModAttribute.cpp", "Constructor"}, "Created ModAttribute object with isFavourite: " + std::to_string(isFavourite) + ", isEnabled: " + std::to_string(isEnabled) + ", and dependencies size: " + std::to_string(dependencies.size()));
+ModAttribute::ModAttribute(const bool &isfavorite, const bool &isEnabled, const std::set<std::string> &dependencies)
+    : isfavorite(isfavorite), isEnabled(isEnabled), dependencies(dependencies) {
+    logger::log({"ModAttribute.cpp", "Constructor"}, "Created ModAttribute object with isfavorite: " + std::to_string(isfavorite) + ", isEnabled: " + std::to_string(isEnabled) + ", and dependencies size: " + std::to_string(dependencies.size()));
 }
 
 // debug use only
 void ModAttribute::print(const std::string &modName, const int &indent) const {
     std::string spaces(indent, ' ');
     std::cout << "Mod Name: " << modName << '\n';
-    std::cout << spaces << "Is Favourite: " << (isFavourite ? "True" : "False") << '\n';
+    std::cout << spaces << "Is favorite: " << (isfavorite ? "True" : "False") << '\n';
     std::cout << spaces << "Dependencies:\n";
     for (const auto &dependency : dependencies) {
         std::cout << spaces << spaces << dependency << '\n';
@@ -18,12 +18,12 @@ void ModAttribute::print(const std::string &modName, const int &indent) const {
     logger::log({"ModAttribute.cpp", "print"}, "Called print.");
 }
 
-bool ModAttribute::getIsFavourite() const {
-    return isFavourite;
+bool ModAttribute::getIsfavorite() const {
+    return isfavorite;
 }
 
-void ModAttribute::setIsFavourite(const bool &isFavourite) {
-    this->isFavourite = isFavourite;
+void ModAttribute::setIsfavorite(const bool &isfavorite) {
+    this->isfavorite = isfavorite;
 }
 
 std::set<std::string> ModAttribute::getDependencies() const {

@@ -14,6 +14,77 @@
 // SETTINGS = mods folder, display presets?
 #include "SettingsHandler.h"
 
+// f : extractDependenciesFromZip
+std::set<std::string> extractDependenciesFromZip(const fs::path &zipFilePath) {
+    mz_zip_archive zipArchive;
+    memset(&zipArchive, 0, sizeof(zipArchive));
+    std::set<std::string> dependencies;
+
+    // ↳ Initialize the zip reader
+    if (!mz_zip_reader_init_file(&zipArchive, zipFilePath.string().c_str(), 0)) {
+        logger::error({"main.cpp", "extractDependenciesFromZip"}, "Failed to open ZIP file: " + zipFilePath.string());
+        colour::cerr("An error has occured. Please report this bug on GitHub with the log.txt file attached.\n", "RED");
+        exitOnEnterPress(1, "Failed to open ZIP file: " + zipFilePath.string());
+    }
+
+    int numFiles = mz_zip_reader_get_num_files(&zipArchive);
+
+    // ↳ Loop through all the files in the zip archive
+    for (int i = 0; i < numFiles; ++i) {
+        mz_zip_archive_file_stat fileStat;
+
+        if (!mz_zip_reader_file_stat(&zipArchive, i, &fileStat)) {
+            continue;
+        }
+
+        // Check if the file is in the root directory of the zip (not in a subdirectory)
+        std::string filename(fileStat.m_filename);
+        if (filename.find('/') != std::string::npos || filename.find('\\') != std::string::npos) {
+            continue;
+        }
+
+        if (filename != "everest.yaml") {
+            continue;
+        }
+
+        size_t fileSize = fileStat.m_uncomp_size;
+        std::vector<char> buffer(fileSize);
+        if (!mz_zip_reader_extract_to_mem(&zipArchive, i, buffer.data(), fileSize, 0)) {
+            logger::warn({"main.cpp", "extractDependenciesFromZip"}, "Failed to read everest.yaml from " + zipFilePath.string());
+            continue;
+        }
+
+        std::stringstream fileContent(std::string(buffer.begin(), buffer.end()));
+        mz_zip_reader_end(&zipArchive);  // Cleanup
+
+        std::string line;
+        bool isDependency = false;
+        while (std::getline(fileContent, line, '\n')) {
+            if (line.substr(0, 4) != "    ") {
+                isDependency = false;
+            }
+
+            if (line.substr(0, 15) == "  Dependencies:") {
+                isDependency = true;
+                continue;
+            }
+
+            if (isDependency && line.substr(0, 12) == "    - Name: ") {
+                std::string dependencyName = std::isspace(line[line.size() - 1]) ? line.substr(12, line.size() - 13) : line.substr(12);
+                if (!dependencyName.empty() &&
+                    dependencyName != "Everest" &&
+                    dependencyName != "EverestCore" &&
+                    dependencyName != "Celeste" &&
+                    dependencyName != zipFilePath.stem().string()) {
+                    dependencies.insert(dependencyName + ".zip");
+                    logger::log({"main.cpp", "extractDependenciesFromZip"}, "Added " + dependencyName + ".zip to dependencies.");
+                }
+            }
+        }
+    }
+    return dependencies;
+}
+
 // f : Setup
 void setup() {
     logger::init();
@@ -45,8 +116,7 @@ void setup() {
     try {
         for (const fs::path &entry : fs::directory_iterator(modsFolderPath)) {  // For Loop 1
             if (fs::is_regular_file(entry) && entry.extension().string() == ".zip") {
-                throw fs::filesystem_error("test", std::make_error_code(std::errc::io_error));
-                modAttributes.insert({entry.filename().string(), ModAttribute()});
+                modAttributes.insert({entry.filename().string(), ModAttribute(false, true, extractDependenciesFromZip(entry))});
                 logger::log({"main.cpp", "setup", "For Loop 1"}, "Added " + entry.filename().string() + " to modAttributes.");
             }
         }
@@ -55,8 +125,43 @@ void setup() {
         logger::error({"main.cpp", "setup", "For Loop 1"}, std::string(e.what()));
         exitOnEnterPress(1, std::string(e.what()));
     }
-    // ↳ From favourites.txt load into [A]
+
+    // ↳ From favorites.txt load into [A]
+    std::ifstream favoriteTxt(modsFolderPath / "favorites.txt");
+    for (std::string line; std::getline(favoriteTxt, line);) {
+        if (line[0] == '#' || line.length() < 1) {
+            continue;
+        }
+
+        modAttributes[line].setIsfavorite(true);
+        logger::log({"main.cpp", "setup"}, "favorited " + line + " from favorites.txt.");
+    }
+    favoriteTxt.close();
+
+    // ↳ From blacklist.txt load into [A]
+    std::ifstream blacklistTxt(modsFolderPath / "blacklist.txt");
+    for (std::string line; std::getline(blacklistTxt, line);) {
+        if (line[0] == '#' || line.length() < 1) {
+            continue;
+        }
+
+        modAttributes[line].setIsEnabled(false);
+        logger::log({"main.cpp", "setup"}, "Disabled " + line + " from blacklist.txt.");
+    }
+    blacklistTxt.close();
+
     // ↳ Get presets from modpresets
+    std::map<std::string, std::set<std::string>> modPresets;
+    std::ifstream modPresetsTxt(modsFolderPath / "modpresets.txt");
+    for (std::string line, currentPreset; std::getline(modPresetsTxt, line);) {
+        if (line[0] == '#' || line.length() < 1) {
+            continue;
+        }
+        if (line.substr(2) == "**") {
+            currentPreset = line.substr(2, line.size() - 2);
+            logger::log({"main.cpp", "setup"}, "Added " + currentPreset + " to modPresets.");
+        }
+    }
     // ↳ Load into a dict<string, set>[C]
 }
 
@@ -69,7 +174,7 @@ void setup() {
 //     ↳ Prompt user
 // ↳ Wait for user input (A)
 // ↳ Validate user input
-//     ↳ If correct GOTO the corresponding option (<Change Mods Folder> | <Help Centre, main> | <Edit Favourite.txt>)
+//     ↳ If correct GOTO the corresponding option (<Change Mods Folder> | <Help Centre, main> | <Edit favorite.txt>)
 //     ↳ Else GOTO (A)
 
 // Change Mods Folder
@@ -92,7 +197,7 @@ void setup() {
 //     ↳ If correct GOTO <Help Centre, [input], [Help Centre, main]>
 //     ↳ Else  GOTO (A)
 
-// substate: edit favourites.txt
+// substate: edit favorites.txt
 // ↳ Display Help
 // ↳ Wait for enter
 // ↳ Return user based on tracker
@@ -119,17 +224,17 @@ void setup() {
 // ↳ Wait for enter
 // ↳ Return user based on tracker
 
-// Edit Favourite.txt
+// Edit favorite.txt
 // ↳ Display general info
 // ↳ Display list of mods "[x] modsname"
 // ↳ Prompt user (A)
 // ↳ Validate user input
 //     ↳ If number edit the list
 //     ↳ If done
-//         ↳ Write to favourites.txt
+//         ↳ Write to favorites.txt
 //         ↳ GOTO <Main Menu>
 //     ↳ If help
-//         ↳ GOTO <Help Centre, edit favourites.txt, [favourites.txt]>
+//         ↳ GOTO <Help Centre, edit favorites.txt, [favorites.txt]>
 //     ↳ Else goto (A)
 
 // Edit Presets
@@ -150,7 +255,7 @@ void setup() {
 // ↳ Display general info
 // ↳ If SETTINGS[display presets?]
 //     ↳ Display presets
-// ↳ Display List of favourites (all )
+// ↳ Display List of favorites (all )
 // ↳ Prompt user (B)
 // ↳ Validate user input
 //     ↳ If number, toggle
@@ -177,7 +282,7 @@ void setup() {
 
 // Enable or Disable mods
 // ↳ Display general info
-// ↳ Display favourites list
+// ↳ Display favorites list
 // ↳ Prompt user (A)
 // ↳ Validate user input
 //     ↳ if number, RUN togglemod

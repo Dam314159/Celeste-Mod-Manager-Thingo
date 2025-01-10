@@ -63,7 +63,7 @@ int main() {
 #endif
 
     std::cout << "Welcome to the celeste mod manager thingo!\n"
-              << "Here you can choose to enable or disable mods based on your favourites.txt file\n"
+              << "Here you can choose to enable or disable mods based on your favorites.txt file\n"
               << "This thing was made to make sure the least number of mods are enabled and also disabling a mod doesn't disable the dependencies.\n"
               << "So it make sure the least number of mods are enabled to prevent running out of RAM or something.\n"
               << '\n';
@@ -94,7 +94,7 @@ int main() {
     }
     mods.close();
 
-    // Open favourite.txt and load into enabledFavMods vector
+    // Open favorite.txt and load into enabledFavMods vector
     std::map<std::string, bool> enabledFavMods;
     std::vector<std::string> favModsList;
     std::ifstream favs;

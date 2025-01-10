@@ -48,6 +48,7 @@ void updateSettings(const std::string &key, const T &value) {
     } else {
         logger::warn({"SettingsHandler.cpp", "settings::updateSettings"}, "Settings file not updated.");
     }
+    settingsFile.close();
 }
 
 }  // namespace settings
