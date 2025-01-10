@@ -1,11 +1,5 @@
-#include <iostream>
-#include <set>
-#include <string>
-#include <vector>
-
 #include "ConsoleStuff.h"
 #include "Logger.h"
-#include "SettingsHandler.h"
 #include "miniz.h"  //Credit to richgel999 on GitHub for the miniz library
 
 // Custom datatype to store mod attributes
@@ -18,26 +12,50 @@
 #include "StateHandler.h"
 
 // SETTINGS = mods folder, display presets?
+#include "SettingsHandler.h"
 
 // f : Setup
 void setup() {
     logger::init();
+    logger::log({"main.cpp", "setup"}, "Successfully initialised logger.");
+
     settings::init();
-    if (settings::getSettings()["modsFolder"].empty()) {
-        colour::cout("It seems like your mods folder is not specified. Please enter your mods folder path below.\n", "DEFAULT");
+    logger::log({"main.cpp", "setup"}, "Successfully initialised settings.");
+
+    // ↳ Check if mods folder path is set correctly
+    fs::path modsFolderPath = settings::getSettings()["modsFolderPath"];
+    if (!fs::exists(modsFolderPath)) {
+        logger::log({"main.cpp", "setup"}, "Mods folder path not found or does not exist.");
+        colour::cout("It seems like your mods folder is not specified or does not exist. Please enter your mods folder path below.\n", "DEFAULT");
         colour::cout("You can find the mod folder by going to Olympus -> Manage installed mods -> Open mods folder, then copy and pasting the file path here.\n\n", "DEFAULT");
         colour::cout("If you're still unsure, try \"C:\\Program Files (x86)\\Steam\\steamapps\\common\\Celeste\\Mods\" for Windows.\n", "DEFAULT");
-        std::string modsFolderPath = ask(
+        fs::path modsFolderPath = ask(
             "Enter your mods folder path:",
             [](std::string input) { return fs::exists(input); },
             [](std::string input) { return "Invalid path. Please try again."; });
-        settings::updateSettings<std::string>("modsFolder", modsFolderPath);
+        settings::updateSettings<std::string>("modsFolderPath", modsFolderPath.string());
     }
+    logger::log({"main.cpp", "setup"}, "Mods folder path is " + modsFolderPath.string());
+
     // ↳ Get all mod names by reading names of zip files
-    // ↳ Load names into custom datatype map<string, <map<string, bool>, map<string, unordered_set> [A]
-    // ↳ From favourites.txt load into [A]
     // ↳ Get dependencies by unzipping mod zips and reading everst.yaml
+    // ↳ Load names into custom datatype [A]
     // ↳ Load dependencies into [A]
+    std::map<std::string, ModAttribute> modAttributes;
+    try {
+        for (const fs::path &entry : fs::directory_iterator(modsFolderPath)) {  // For Loop 1
+            if (fs::is_regular_file(entry) && entry.extension().string() == ".zip") {
+                throw fs::filesystem_error("test", std::make_error_code(std::errc::io_error));
+                modAttributes.insert({entry.filename().string(), ModAttribute()});
+                logger::log({"main.cpp", "setup", "For Loop 1"}, "Added " + entry.filename().string() + " to modAttributes.");
+            }
+        }
+    } catch (const fs::filesystem_error &e) {
+        colour::cerr("An error has occured. Please report this bug on GitHub with the log.txt file attached.\n", "RED");
+        logger::error({"main.cpp", "setup", "For Loop 1"}, std::string(e.what()));
+        exitOnEnterPress(1, std::string(e.what()));
+    }
+    // ↳ From favourites.txt load into [A]
     // ↳ Get presets from modpresets
     // ↳ Load into a dict<string, set>[C]
 }

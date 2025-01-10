@@ -1,8 +1,8 @@
 #include "ModAttribute.h"
 
-ModAttribute::ModAttribute(const bool &isFavourite = false, const bool &isEnabled = false, const std::set<std::string> &dependencies = {})
-    : isFavourite(isFavourite), dependencies(dependencies), isEnabled(isEnabled) {
-    logger::log({"ModAttribute.cpp", "ModAttribute"}, "Created ModAttribute object.");
+ModAttribute::ModAttribute(const bool &isFavourite, const bool &isEnabled, const std::set<std::string> &dependencies)
+    : isFavourite(isFavourite), isEnabled(isEnabled), dependencies(dependencies) {
+    logger::log({"ModAttribute.cpp", "Constructor"}, "Created ModAttribute object with isFavourite: " + std::to_string(isFavourite) + ", isEnabled: " + std::to_string(isEnabled) + ", and dependencies size: " + std::to_string(dependencies.size()));
 }
 
 // debug use only
