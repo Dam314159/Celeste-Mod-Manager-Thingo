@@ -8,7 +8,7 @@ void init() {
     fs::remove(logFilePath);
     std::ofstream logFile(logFilePath);
     if (logFile.is_open()) {
-        logFile << "  LOG (" << getCurrentTimeStamp() << ") [Logger.cpp] [init()] Log file created.\n";
+        logFile << "  LOG (" << getCurrentTimeStamp() << ") [Logger.cpp] [init] Log file created.\n";
     } else {
         colour::cerr("WARNING: Log file not created.\n", "YELLOW");
     }
@@ -23,8 +23,13 @@ std::string getCurrentTimeStamp() {
     return ss.str();
 }
 
-std::string formatString(std::string text) {
+std::string escapeString(std::string text) {
     text = std::regex_replace(text, std::regex("\n"), "\\n");
+    return text;
+}
+
+std::string unescapeString(std::string text) {
+    text = std::regex_replace(text, std::regex("\\n"), "\n");
     return text;
 }
 
@@ -36,7 +41,7 @@ void log(const std::vector<std::string> &location, const std::string &text) {
     for (const std::string &loc : location) {
         ss << "[" << loc << "] ";
     }
-    ss << formatString(text) << "\n";
+    ss << escapeString(text) << "\n";
 
     if (logFile.is_open()) {
         logFile << ss.str();
@@ -57,7 +62,7 @@ void warn(const std::vector<std::string> &location, const std::string &text) {
     for (const std::string &loc : location) {
         ss << "[" << loc << "] ";
     }
-    ss << formatString(text) << "\n";
+    ss << escapeString(text) << "\n";
 
     if (logFile.is_open()) {
         logFile << ss.str();
@@ -78,7 +83,7 @@ void error(const std::vector<std::string> &location, const std::string &text) {
     for (const std::string &loc : location) {
         ss << "[" << loc << "] ";
     }
-    ss << formatString(text) << "\n";
+    ss << escapeString(text) << "\n";
 
     if (logFile.is_open()) {
         logFile << ss.str();
