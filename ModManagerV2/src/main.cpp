@@ -151,31 +151,71 @@ void setup() {
     blacklistTxt.close();
 
     // ↳ Get presets from modpresets
+    // ↳ Load into a dict<string, set>[C]
     std::map<std::string, std::set<std::string>> modPresets;
     std::ifstream modPresetsTxt(modsFolderPath / "modpresets.txt");
     for (std::string line, currentPreset; std::getline(modPresetsTxt, line);) {
         if (line[0] == '#' || line.length() < 1) {
             continue;
         }
-        if (line.substr(2) == "**") {
-            currentPreset = line.substr(2, line.size() - 2);
+        if (line.substr(0, 2) == "**") {
+            currentPreset = line.substr(2);
             logger::log({"main.cpp", "setup"}, "Added " + currentPreset + " to modPresets.");
+            continue;
         }
+        modPresets[currentPreset].insert(line);
+        logger::log({"main.cpp", "setup"}, "Added " + line + " to " + currentPreset + " in modPresets.");
     }
-    // ↳ Load into a dict<string, set>[C]
+
+    state::setState("Main Menu", "", {});
 }
 
 // Main Menu
-// ↳ Display Text
-//     ↳ Welcome message
-//     ↳ Options
-//     ↳ Current mods folder
-//     ↳ Change mods folder option
-//     ↳ Prompt user
-// ↳ Wait for user input (A)
-// ↳ Validate user input
-//     ↳ If correct GOTO the corresponding option (<Change Mods Folder> | <Help Centre, main> | <Edit favorite.txt>)
-//     ↳ Else GOTO (A)
+void MAIN_MENU() {
+    cls();
+    // ↳ Display Text
+    //     ↳ Welcome message
+    colour::cout("Welcome to the Celeste Mod Manager!\n", "DEFAULT");
+    colour::cout("This mod was created by me so that you don't have to deal with the hassle of ", "DEFAULT");
+    colour::cout("[helper mods and dependencies]", "CYAN");
+    colour::cout(" sucking up all your RAM.\n\n", "DEFAULT");
+
+    //     ↳ Options
+    colour::cout("Options:\n", "DEFAULT");
+    colour::cout("1: Enable or Disable mods\n", "DEFAULT");
+    colour::cout("2: Edit favorite.txt file\n", "DEFAULT");
+    colour::cout("3: Edit presets\n", "DEFAULT");
+    colour::cout("4: Help Center\n", "DEFAULT");
+
+    //     ↳ Current mods folder
+    //     ↳ Change mods folder option
+    colour::cout("5: Change mods folder (Currently set to: ", "DEFAULT");
+    colour::cout(settings::getSettings().at("modsFolderPath").get<std::string>(), "CYAN");
+    colour::cout(")\n\n", "DEFAULT");
+
+    //     ↳ Exit option
+    colour::cout("0: Exit\n\n", "DEFAULT");
+
+    //     ↳ Prompt user
+    auto validateInput = [](std::string input) -> bool {
+        try {
+            int choice = std::stoi(input);
+            return 0 <= choice && choice <= 5;
+        } catch (const std::invalid_argument &e) {
+            return false;
+        }
+    };
+
+    auto subsequent = [](std::string input) -> std::string {
+        return "Please enter a number from 0 to 5 (inclusive).";
+    };
+
+    // ↳ Wait for user input (A)
+    // ↳ Validate user input
+    ask("Input the corresponding number to select an option:", validateInput, subsequent);
+    //     ↳ If correct GOTO the corresponding option (<Change Mods Folder> | <Help Centre, main> | <Edit favorite.txt>)
+    //     ↳ Else GOTO (A)
+}
 
 // Change Mods Folder
 // ↳ Display Text
@@ -298,5 +338,12 @@ void setup() {
 
 int main() {
     setup();
+    while (true) {
+        if (state::getState() == "Main Menu") {
+            MAIN_MENU();
+        } else if (state::getState() == "Exit") {
+            break;
+        }
+    }
     return 0;
 }

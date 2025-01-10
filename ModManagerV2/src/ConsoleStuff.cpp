@@ -26,11 +26,8 @@ void cerr(const std::string &text, const std::string &colour) {
 }  // namespace colour
 
 void cls() {
-#ifdef _WIN32
-    system("cls");
-#else
-    system("clear");
-#endif
+    std::cout << "\033[2J\033[H";
+    std::cout.flush();
     // logger::log({"ConsoleStuff.cpp", "cls"}, "Cleared console screen.");
 }
 
