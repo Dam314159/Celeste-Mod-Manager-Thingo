@@ -1,14 +1,17 @@
 #include "SettingsHandler.h"
 
+nlohmann::json config;
+fs::path settingsFilePath = fs::current_path() / "settings.json";
+
 namespace settings {
 
 void init() {
-    std::ofstream settingsFile(settingsFilePath);
+    std::ifstream settingsFile(settingsFilePath);
     if (settingsFile.is_open()) {
-        logger::log({"SettingsHandler.cpp", "settings::init"}, "Settings file found.");
+        logger::log({"SettingsHandler.cpp", "settings::init"}, "Settings file found at " + settingsFilePath.string());
         try {
-            settingsFile << config;
-            logger::log({"SettingsHandler.cpp", "settings::init"}, "Settings file loaded.");
+            config = json::parse(settingsFile);
+            logger::log({"SettingsHandler.cpp", "settings::init"}, "Settings file loaded as " + config.dump(4));
         } catch (const json::parse_error &e) {
             settingsFile.close();
 
@@ -30,9 +33,9 @@ void init() {
         std::ofstream settingsFile(settingsFilePath);
         if (settingsFile.is_open()) {
             settingsFile << config.dump(4);
-            logger::log({"SettingsHandler.cpp", "settings::init"}, "Settings file created and loaded.");
+            logger::log({"SettingsHandler.cpp", "settings::init"}, "Settings file created and loaded with " + config.dump(4));
         } else {
-            logger::warn({"SettingsHandler.cpp", "settings::init"}, "Settings file not created. Using default settings...");
+            logger::warn({"SettingsHandler.cpp", "settings::init"}, "Settings file not created. Using default settings : " + config.dump(4));
         }
         settingsFile.close();
     }

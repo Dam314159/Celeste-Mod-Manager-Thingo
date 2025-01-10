@@ -14,18 +14,20 @@ using json = nlohmann::json;
 
 #include "json.hpp"
 
-namespace settings {
+extern nlohmann::json config;
+extern fs::path settingsFilePath;
 
-nlohmann::json config;
-fs::path settingsFilePath = fs::current_path() / "settings.json";
+namespace settings {
 
 void init();
 nlohmann::json getSettings();
 
 template <typename T>
 void updateSettings(const std::string &key, const T &value) {
+    logger::log({"SettingsHandler.cpp", "settings::updateSettings"}, config.dump(4));
     try {
         config.at(key) = value;
+        logger::log({"SettingsHandler.cpp", "settings::updateSettings"}, config.dump(4));
         if constexpr (std::is_same_v<T, std::string>) {
             logger::log({"SettingsHandler.cpp", "settings::updateSettings"}, key + " updated to " + value);
         } else {
