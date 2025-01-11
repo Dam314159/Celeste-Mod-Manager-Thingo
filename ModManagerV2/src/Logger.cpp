@@ -1,6 +1,7 @@
 #include "Logger.h"
 
 fs::path logFilePath = fs::current_path() / "log.txt";
+auto start = std::chrono::system_clock::now();
 
 namespace logger {
 
@@ -17,10 +18,9 @@ void init() {
 
 std::string getCurrentTimeStamp() {
     auto now = std::chrono::system_clock::now();
-    auto in_time_t = std::chrono::system_clock::to_time_t(now);
-    std::stringstream ss;
-    ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %X");
-    return ss.str();
+    auto epoch = now.time_since_epoch() - start.time_since_epoch();
+    auto timestamp = std::chrono::duration_cast<std::chrono::duration<double>>(epoch).count();
+    return std::to_string(timestamp);
 }
 
 std::string escapeString(std::string text) {
