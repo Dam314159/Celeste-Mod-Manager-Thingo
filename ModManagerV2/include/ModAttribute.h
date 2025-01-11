@@ -11,8 +11,8 @@ class ModAttribute {
    public:
     ModAttribute(const bool &isfavorite = false, const bool &isEnabled = false, const std::set<std::string> &dependencies = {});
     void print(const std::string &modName, const int &indent) const;
-    bool getIsfavorite() const;
-    void setIsfavorite(const bool &isfavorite);
+    bool getIsFavorite() const;
+    void setIsFavorite(const bool &isfavorite);
     std::set<std::string> getDependencies() const;
     void addDependency(const std::string &dependency);
     bool getIsEnabled() const;

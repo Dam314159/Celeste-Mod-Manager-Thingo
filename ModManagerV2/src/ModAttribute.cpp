@@ -18,11 +18,11 @@ void ModAttribute::print(const std::string &modName, const int &indent) const {
     logger::log({"ModAttribute.cpp", "print"}, "Called print.");
 }
 
-bool ModAttribute::getIsfavorite() const {
+bool ModAttribute::getIsFavorite() const {
     return isfavorite;
 }
 
-void ModAttribute::setIsfavorite(const bool &isfavorite) {
+void ModAttribute::setIsFavorite(const bool &isfavorite) {
     this->isfavorite = isfavorite;
 }
 
