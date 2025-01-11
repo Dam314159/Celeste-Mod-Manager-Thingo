@@ -86,7 +86,9 @@ std::set<std::string> extractDependenciesFromZip(const fs::path &zipFilePath) {
 }
 
 // f : Setup
+std::map<std::string, ModAttribute> mods;
 void setup() {
+    colour::cout("Loading...", "MAGENTA");
     logger::init();
     logger::log({"main.cpp", "setup"}, "Successfully initialised logger.");
 
@@ -112,12 +114,11 @@ void setup() {
     // ↳ Get dependencies by unzipping mod zips and reading everst.yaml
     // ↳ Load names into custom datatype [A]
     // ↳ Load dependencies into [A]
-    std::map<std::string, ModAttribute> modAttributes;
     try {
-        for (const fs::path &entry : fs::directory_iterator(modsFolderPath)) {  // For Loop 1
+        for (const fs::path &entry : fs::directory_iterator(modsFolderPath)) {
             if (fs::is_regular_file(entry) && entry.extension().string() == ".zip") {
-                modAttributes.insert({entry.filename().string(), ModAttribute(false, true, extractDependenciesFromZip(entry))});
-                logger::log({"main.cpp", "setup", "For Loop 1"}, "Added " + entry.filename().string() + " to modAttributes.");
+                mods.insert({entry.filename().string(), ModAttribute(false, true, extractDependenciesFromZip(entry))});
+                logger::log({"main.cpp", "setup"}, "Added " + entry.filename().string() + " to mods.");
             }
         }
     } catch (const fs::filesystem_error &e) {
@@ -133,7 +134,7 @@ void setup() {
             continue;
         }
 
-        modAttributes[line].setIsfavorite(true);
+        mods[line].setIsFavorite(true);
         logger::log({"main.cpp", "setup"}, "favorited " + line + " from favorites.txt.");
     }
     favoriteTxt.close();
@@ -145,7 +146,7 @@ void setup() {
             continue;
         }
 
-        modAttributes[line].setIsEnabled(false);
+        mods[line].setIsEnabled(false);
         logger::log({"main.cpp", "setup"}, "Disabled " + line + " from blacklist.txt.");
     }
     blacklistTxt.close();
@@ -177,7 +178,7 @@ void MAIN_MENU() {
     //     ↳ Welcome message
     colour::cout("Welcome to the Celeste Mod Manager!\n", "DEFAULT");
     colour::cout("This mod was created by me so that you don't have to deal with the hassle of ", "DEFAULT");
-    colour::cout("[helper mods and dependencies]", "CYAN");
+    colour::cout("helper mods and dependencies", "CYAN");
     colour::cout(" sucking up all your RAM.\n\n", "DEFAULT");
 
     //     ↳ Options
@@ -195,6 +196,7 @@ void MAIN_MENU() {
 
     //     ↳ Exit option
     colour::cout("0: Exit\n\n", "DEFAULT");
+    logger::log({"main.cpp", "MAIN_MENU"}, "Displayed welcome text.");
 
     //     ↳ Prompt user
     auto validateInput = [](std::string input) -> bool {
@@ -212,9 +214,40 @@ void MAIN_MENU() {
 
     // ↳ Wait for user input (A)
     // ↳ Validate user input
-    ask("Input the corresponding number to select an option:", validateInput, subsequent);
+    int choice;
+    try {
+        choice = std::stoi(ask("Input the corresponding number to select an option:", validateInput, subsequent));
+    } catch (const std::invalid_argument &e) {
+        logger::error({"main.cpp", "MAIN_MENU"}, "User input incorrectly accepted as a string.");
+        colour::cerr("An error has occured. Please report this bug on GitHub with the log.txt file attached.\n", "RED");
+        exitOnEnterPress(1, "User input should be an interger in string form.");
+    }
     //     ↳ If correct GOTO the corresponding option (<Change Mods Folder> | <Help Centre, main> | <Edit favorite.txt>)
     //     ↳ Else GOTO (A)
+    switch (choice) {
+        case 0:
+            state::setState("Exit", "", {});
+            break;
+        case 1:
+            state::updateState("Enable or disable mods", "main");
+            break;
+        case 2:
+            state::updateState("Edit favorite.txt", "main");
+            break;
+        case 3:
+            state::updateState("Edit presets", "main");
+            break;
+        case 4:
+            state::updateState("Help centre", "main");
+            break;
+        case 5:
+            state::updateState("Change mods folder", "main");
+            break;
+        default:
+            logger::error({"main.cpp", "MAIN_MENU"}, "User input incorrectly accepcted not from 0 to 5");
+            colour::cerr("An error has occured. Please report this bug on GitHub with the log.txt file attached.\n", "RED");
+            exitOnEnterPress(1, "User answer has been incorrectly accepted even though it was out of bounds.");
+    }
 }
 
 // Change Mods Folder
@@ -321,29 +354,61 @@ void MAIN_MENU() {
 //     ↳ If help, GOTO <Help centre, edit preset remove, [Edit presets, edit]>
 
 // Enable or Disable mods
-// ↳ Display general info
-// ↳ Display favorites list
-// ↳ Prompt user (A)
-// ↳ Validate user input
-//     ↳ if number, RUN togglemod
-//     ↳ if help, GOTO <Help centre, enable or diable mods, [enable or disable mods]>
-//     ↳ if exit, write to blacklist.txt
+void ENABLE_OR_DISABLE_MODS() {
+    // ↳ Display general info
+    cls();
+    colour::cout("This is where you can enable or disable mods.\n", "DEFAULT");
+    colour::cout("The list shown below is based off the ", "DEFAULT");
+    colour::cout("favorites.txt file", "CYAN");
+    colour::cout(" that can be found at ", "DEFAULT");
+    colour::cout(settings::getSettings().at("modsFolderPath").get<std::string>() + " favorites.txt", "CYAN");
+    colour::cout("\n\n", "DEFAULT");
 
-// f : togglemod(modToToggle, itsDependencies, onOrOff)
-// ↳ modToToggle -> turn onOrOff
-// ↳ if itsDependencies < 1
-//     ↳ exit
-// ↳ for(dependency in itsDependencies)
-//     ↳ RUN togglemod(dependency, dependency[dependencies], onOrOff)
+    // ↳ Display favorites list
+    std::map<std::string, bool> favMods;
+    int i = 1;
+    for (const auto &[modName, modAttribute] : mods) {
+        if (modAttribute.getIsFavorite()) {
+            favMods.insert({modName, modAttribute.getIsEnabled()});
+            colour::cout(modName + ": " + std::to_string(modAttribute.getIsEnabled()) + "\n", "GREEN");
+            // TODO: add a thing that prints stuff given a std::map<std::string, bool>
+            // TODO: [ ] 1: one (in white)
+            // TODO: [x] 2: two (in gr(e || a)y)
+        }
+        i++;
+    }
+
+    exitOnEnterPress(0, "test");
+
+    // ↳ Prompt user (A)
+    // ↳ Validate user input
+    //     ↳ if number, RUN togglemod
+    //     ↳ if help, GOTO <Help centre, enable or diable mods, [enable or disable mods]>
+    //     ↳ if exit, write to blacklist.txt
+
+    // f : togglemod(modToToggle, itsDependencies, onOrOff)
+    // ↳ modToToggle -> turn onOrOff
+    // ↳ if itsDependencies < 1
+    //     ↳ exit
+    // ↳ for(dependency in itsDependencies)
+    //     ↳ RUN togglemod(dependency, dependency[dependencies], onOrOff)
+}
 
 int main() {
     setup();
     while (true) {
         if (state::getState() == "Main Menu") {
             MAIN_MENU();
+        } else if (state::getState() == "Enable or disable mods") {
+            ENABLE_OR_DISABLE_MODS();
         } else if (state::getState() == "Exit") {
             break;
+        } else {
+            logger::error({"main.cpp", "main"}, "An invalid state was found.");
+            colour::cerr("An error has occured. Please report this bug on GitHub with the log.txt file attached.\n", "RED");
+            exitOnEnterPress(1, "An invalid state has been found.");
         }
     }
+    logger::log({"main.cpp", "main"}, "Goodbye!");
     return 0;
 }
