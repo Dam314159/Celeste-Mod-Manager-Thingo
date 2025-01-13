@@ -66,3 +66,24 @@ std::string ask(const std::string &question,
 
     return input;
 }
+
+void printModsList(std::vector<std::pair<std::string, bool>> modsList) {
+    logger::log({"ConsoleStuff.cpp", "printModsList"}, "Called the function");
+    int modsListLen = modsList.size();
+    int modsListLenDigitCount = (modsListLen == 0) ? 1 : std::log10(modsListLen) + 1;
+
+    int i = 1;
+    for (const auto &[key, value] : modsList) {
+        std::string index = std::to_string(i);
+        while (index.size() < modsListLenDigitCount) {
+            index = " " + index;
+        }
+        if (value) {
+            colour::cout("[x] " + index + ": " + key + "\n", "WHITE");
+        } else {
+            colour::cout("[ ] " + index + ": " + key + "\n", "GREY");
+        }
+        i++;
+    }
+    logger::log({"ConsoleStuff.cpp", "printModsList"}, "Done the function");
+}

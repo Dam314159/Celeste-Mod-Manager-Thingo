@@ -354,32 +354,63 @@ void MAIN_MENU() {
 //     ↳ If help, GOTO <Help centre, edit preset remove, [Edit presets, edit]>
 
 // Enable or Disable mods
-void ENABLE_OR_DISABLE_MODS() {
-    // ↳ Display general info
-    cls();
-    colour::cout("This is where you can enable or disable mods.\n", "DEFAULT");
-    colour::cout("The list shown below is based off the ", "DEFAULT");
-    colour::cout("favorites.txt file", "CYAN");
-    colour::cout(" that can be found at ", "DEFAULT");
-    colour::cout(settings::getSettings().at("modsFolderPath").get<std::string>() + " favorites.txt", "CYAN");
-    colour::cout("\n\n", "DEFAULT");
 
-    // ↳ Display favorites list
-    std::map<std::string, bool> favMods;
+// TODO: Add logging info
+void ENABLE_OR_DISABLE_MODS() {
+    std::vector<std::pair<std::string, bool>> favMods;
     int i = 1;
     for (const auto &[modName, modAttribute] : mods) {
         if (modAttribute.getIsFavorite()) {
-            favMods.insert({modName, modAttribute.getIsEnabled()});
-            colour::cout(modName + ": " + std::to_string(modAttribute.getIsEnabled()) + "\n", "GREEN");
-            // TODO: add a thing that prints stuff given a std::map<std::string, bool>
-            // TODO: [ ] 1: one (in white)
-            // TODO: [x] 2: two (in gr(e || a)y)
+            favMods.push_back({modName, modAttribute.getIsEnabled()});
         }
         i++;
     }
 
-    exitOnEnterPress(0, "test");
+    while (true) {
+        // ↳ Display general info
+        cls();
+        colour::cout("This is where you can enable or disable mods.\n", "DEFAULT");
+        colour::cout("The list shown below is based off the ", "DEFAULT");
+        colour::cout("favorites.txt file", "CYAN");
+        colour::cout(" that can be found at ", "DEFAULT");
+        colour::cout(settings::getSettings().at("modsFolderPath").get<std::string>() + " favorites.txt", "CYAN");
+        colour::cout("\n\n", "DEFAULT");
+        // ↳ Display favorites list
+        printModsList(favMods);
 
+        auto validation = [favMods](std::string input) -> bool {
+            try {
+                int choice = std::stoi(input);
+                return (1 <= choice && choice <= favMods.size());
+
+            } catch (const std::invalid_argument &e) {
+                return (input == "q" || input == "h");
+            }
+        };
+
+        auto subsequent = [favMods](std::string input) -> std::string {
+            try {
+                int choice = std::stoi(input);
+                return "Please enter a number from 1 to " + std::to_string(favMods.size());
+            } catch (const std::invalid_argument &e) {
+                return "Enter a number, \"q\" to go back, or \"h\" for help.";
+            }
+        };
+
+        std::string choice = ask("\n Enter the number corresponding to the mod you want to toggle, \"q\" to go back, or \"h\" for the help center.", validation, subsequent);
+        try {
+            int chosenMod = std::stoi(choice) - 1;
+
+            favMods[chosenMod].second = !favMods[chosenMod].second;
+
+        } catch (const std::invalid_argument &e) {
+            if (choice == "q") {
+                state::returnToPreviousState();
+            } else if (choice == "h") {
+                state::updateState("Help center", "Enable or Disable mods");
+            }
+        }
+    }
     // ↳ Prompt user (A)
     // ↳ Validate user input
     //     ↳ if number, RUN togglemod

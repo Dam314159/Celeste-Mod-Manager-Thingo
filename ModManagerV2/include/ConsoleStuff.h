@@ -1,6 +1,7 @@
 #ifndef CONSOLESTUFF_H
 #define CONSOLESTUFF_H
 
+#include <cmath>
 #include <cstdlib>
 #include <functional>
 #include <iostream>
@@ -21,5 +22,6 @@ void exitOnEnterPress(const int &exitCode, const std::string &message);
 std::string ask(const std::string &question,
                 const std::function<bool(std::string)> &validation,
                 const std::function<std::string(std::string)> &subsequent);
+void printModsList(std::vector<std::pair<std::string, bool>> modsList);
 
 #endif
