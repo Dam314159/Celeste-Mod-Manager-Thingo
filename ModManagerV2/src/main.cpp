@@ -166,7 +166,7 @@ void setup() {
         logger::log({"main.cpp", "setup"}, "Added " + line + " to " + currentPreset + " in modPresets.");
     }
 
-    state::setState("Main Menu", "", {});
+    state::setState("mainMenu", "", {});
 }
 
 // Main Menu
@@ -223,22 +223,22 @@ void MAIN_MENU() {
     //     ↳ Else GOTO (A)
     switch (choice) {
         case 0:
-            state::setState("Exit", "", {});
+            state::setState("exit", "", {});
             break;
         case 1:
-            state::updateState("Enable or disable mods", "main");
+            state::updateState("enableOrDisableMods", "main");
             break;
         case 2:
-            state::updateState("Edit favorite.txt", "main");
+            state::updateState("editFavoritesTxt", "main");
             break;
         case 3:
-            state::updateState("Edit presets", "main");
+            state::updateState("editPresets", "main");
             break;
         case 4:
-            state::updateState("Help centre", "main");
+            state::updateState("helpCentre", "main");
             break;
         case 5:
-            state::updateState("Change mods folder", "main");
+            state::updateState("changeModsFolder", "main");
             break;
         default:
             logger::error({"main.cpp", "MAIN_MENU"}, "User input incorrectly accepcted not from 0 to 5");
@@ -403,7 +403,7 @@ void ENABLE_OR_DISABLE_MODS() {
             if (choice == "q") {
                 state::returnToPreviousState();
             } else if (choice == "h") {
-                state::updateState("Help center", "Enable or Disable mods");
+                state::updateState("helpCenter", "enableOrDisableMods");
             }
         }
     }
@@ -424,11 +424,11 @@ void ENABLE_OR_DISABLE_MODS() {
 int main() {
     setup();
     while (true) {
-        if (state::getState() == "Main Menu") {
+        if (state::getState() == "mainMenu") {
             MAIN_MENU();
-        } else if (state::getState() == "Enable or disable mods") {
+        } else if (state::getState() == "enableOrDisableMods") {
             ENABLE_OR_DISABLE_MODS();
-        } else if (state::getState() == "Exit") {
+        } else if (state::getState() == "exit") {
             break;
         } else {
             logger::error({"main.cpp", "main"}, "An invalid state was found.");
