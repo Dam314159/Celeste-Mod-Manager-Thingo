@@ -173,30 +173,30 @@ void setup() {
 void MAIN_MENU() {
     cls();
     // ↳ Display Text
-    //     ↳ Welcome message
+    // ↳ Welcome message
     colour::cout("Welcome to the Celeste Mod Manager!\n", "DEFAULT");
     colour::cout("This mod was created by me so that you don't have to deal with the hassle of ", "DEFAULT");
     colour::cout("helper mods and dependencies", "CYAN");
     colour::cout(" sucking up all your RAM.\n\n", "DEFAULT");
 
-    //     ↳ Options
+    // ↳ Options
     colour::cout("Options:\n", "DEFAULT");
     colour::cout("1: Enable or Disable mods\n", "DEFAULT");
     colour::cout("2: Edit favorite.txt file\n", "DEFAULT");
     colour::cout("3: Edit presets\n", "DEFAULT");
     colour::cout("4: Help Center\n", "DEFAULT");
 
-    //     ↳ Current mods folder
-    //     ↳ Change mods folder option
+    // ↳ Current mods folder
+    // ↳ Change mods folder option
     colour::cout("5: Change mods folder (Currently set to: ", "DEFAULT");
     colour::cout(settings::getSettings().at("modsFolderPath").get<std::string>(), "CYAN");
     colour::cout(")\n\n", "DEFAULT");
 
-    //     ↳ Exit option
+    // ↳ Exit option
     colour::cout("0: Exit\n\n", "DEFAULT");
     logger::log({"main.cpp", "MAIN_MENU"}, "Displayed welcome text.");
 
-    //     ↳ Prompt user
+    // ↳ Prompt user
     auto validateInput = [](std::string input) -> bool {
         try {
             int choice = std::stoi(input);
@@ -219,8 +219,8 @@ void MAIN_MENU() {
         logger::error({"main.cpp", "MAIN_MENU"}, "User input incorrectly accepted as a string.");
         exitOnEnterPress(1, "User input should be an interger in string form.");
     }
-    //     ↳ If correct GOTO the corresponding option (<Change Mods Folder> | <Help Centre, main> | <Edit favorite.txt>)
-    //     ↳ Else GOTO (A)
+    // ↳ If correct GOTO the corresponding option (<Change Mods Folder> | <Help Centre, main> | <Edit favorite.txt>)
+    // ↳ Else GOTO (A)
     switch (choice) {
         case 0:
             state::setState("exit", "", {});
@@ -248,23 +248,23 @@ void MAIN_MENU() {
 
 // Change Mods Folder
 // ↳ Display Text
-//     ↳ General info
-//     ↳ How to find the correct folder
-//     ↳ Prompt user
+// ↳ General info
+// ↳ How to find the correct folder
+// ↳ Prompt user
 // ↳ Wait for user input (A)
 // ↳ Validate and sanitise user input
-//     ↳ If correct
-//         ↳ RUN  <Setup>
-//         ↳ GOTO <Main Menu>
-//     ↳ Else goto(A)
+// ↳ If correct
+// ↳ RUN  <Setup>
+// ↳ GOTO <Main Menu>
+// ↳ Else goto(A)
 
 // Help Centre
 // substate: main
 // ↳ Display general info
 // ↳ Prompt user (A)
 // ↳ Validate user input
-//     ↳ If correct GOTO <Help Centre, [input], [Help Centre, main]>
-//     ↳ Else  GOTO (A)
+// ↳ If correct GOTO <Help Centre, [input], [Help Centre, main]>
+// ↳ Else  GOTO (A)
 
 // substate: edit favorites.txt
 // ↳ Display Help
@@ -275,8 +275,8 @@ void MAIN_MENU() {
 // ↳ Display general help and options
 // ↳ Prompt user (B)
 // ↳ Validate user input
-//     ↳ If correct GOTO <Help Centre, [input], [Help Centre, edit presets main]>
-//     ↳ If exit Return user based on tracker
+// ↳ If correct GOTO <Help Centre, [input], [Help Centre, edit presets main]>
+// ↳ If exit Return user based on tracker
 
 // substate: edit presets add
 // ↳ Display Help
@@ -298,56 +298,56 @@ void MAIN_MENU() {
 // ↳ Display list of mods "[x] modsname"
 // ↳ Prompt user (A)
 // ↳ Validate user input
-//     ↳ If number edit the list
-//     ↳ If done
-//         ↳ Write to favorites.txt
-//         ↳ GOTO <Main Menu>
-//     ↳ If help
-//         ↳ GOTO <Help Centre, edit favorites.txt, [favorites.txt]>
-//     ↳ Else goto (A)
+// ↳ If number edit the list
+// ↳ If done
+// ↳ Write to favorites.txt
+// ↳ GOTO <Main Menu>
+// ↳ If help
+// ↳ GOTO <Help Centre, edit favorites.txt, [favorites.txt]>
+// ↳ Else goto (A)
 
 // Edit Presets
 // substate: main
 // ↳ Display general info
 // ↳ If SETTINGS[display presets?]
-//     ↳ Display presets
+// ↳ Display presets
 // ↳ Display Options (presetname, remove, help)
 // ↳ Prompt user (A)
 // ↳ Validate user input
-//     ↳ If presetname exists GOTO <Edit Presets, edit>
-//     ↳ If presetname not exists GOTO <Edit Presets, add>
-//     ↳ If help GOTO <Help centre, edit preset main, [Edit Presets, main]>
-//     ↳ if exit, write to modpresets.txt
-//     ↳ Else GOTO (A)
+// ↳ If presetname exists GOTO <Edit Presets, edit>
+// ↳ If presetname not exists GOTO <Edit Presets, add>
+// ↳ If help GOTO <Help centre, edit preset main, [Edit Presets, main]>
+// ↳ if exit, write to modpresets.txt
+// ↳ Else GOTO (A)
 
 // substate: add
 // ↳ Display general info
 // ↳ If SETTINGS[display presets?]
-//     ↳ Display presets
+// ↳ Display presets
 // ↳ Display List of favorites (all )
 // ↳ Prompt user (B)
 // ↳ Validate user input
-//     ↳ If number, toggle
-//     ↳ If help, GOTO <Help centre, edit preset add, [Edit Presets, add]>
-//     ↳ If exit GOTO <Edit presets, main>
+// ↳ If number, toggle
+// ↳ If help, GOTO <Help centre, edit preset add, [Edit Presets, add]>
+// ↳ If exit GOTO <Edit presets, main>
 
 // substate: edit
 // ↳ Display general info
 // ↳ Display list of favs with presets ticked
 // ↳ Prompt user input (C)
 // ↳ Validate user input
-//     ↳ If number, toggle
-//     ↳ If exit, GOTO <Edit Presets, main>
-//     ↳ If help, GOTO <Help centre, edit preset edit, [Edit Presets, edit]>
+// ↳ If number, toggle
+// ↳ If exit, GOTO <Edit Presets, main>
+// ↳ If help, GOTO <Help centre, edit preset edit, [Edit Presets, edit]>
 
 // substate: remove
 // ↳ Display general info
 // ↳ Display list of presets
 // ↳ Prompt user (D)
 // ↳ Validate user input
-//     ↳ If number, remove preset
-//     ↳ If exit, GOTO <Edit Presets, main>
-//     ↳ If help, GOTO <Help centre, edit preset remove, [Edit presets, edit]>
+// ↳ If number, remove preset
+// ↳ If exit, GOTO <Edit Presets, main>
+// ↳ If help, GOTO <Help centre, edit preset remove, [Edit presets, edit]>
 
 // Enable or Disable mods
 
@@ -393,32 +393,33 @@ void ENABLE_OR_DISABLE_MODS() {
             }
         };
 
+        // ↳ Prompt user (A)
+        // ↳ Validate user input
         std::string choice = ask("\n Enter the number corresponding to the mod you want to toggle, \"q\" to go back, or \"h\" for the help center.", validation, subsequent);
         try {
+            // ↳ if number, RUN togglemod
             int chosenMod = std::stoi(choice) - 1;
-
             favMods[chosenMod].second = !favMods[chosenMod].second;
 
         } catch (const std::invalid_argument &e) {
             if (choice == "q") {
+                // ↳ if exit, write to blacklist.txt
                 state::returnToPreviousState();
+
             } else if (choice == "h") {
+                // ↳ if help, GOTO <Help centre, enable or diable mods, [enable or disable mods]>
                 state::updateState("helpCenter", "enableOrDisableMods");
             }
+            break;
         }
     }
-    // ↳ Prompt user (A)
-    // ↳ Validate user input
-    //     ↳ if number, RUN togglemod
-    //     ↳ if help, GOTO <Help centre, enable or diable mods, [enable or disable mods]>
-    //     ↳ if exit, write to blacklist.txt
 
     // f : togglemod(modToToggle, itsDependencies, onOrOff)
     // ↳ modToToggle -> turn onOrOff
     // ↳ if itsDependencies < 1
-    //     ↳ exit
+    // ↳ exit
     // ↳ for(dependency in itsDependencies)
-    //     ↳ RUN togglemod(dependency, dependency[dependencies], onOrOff)
+    // ↳ RUN togglemod(dependency, dependency[dependencies], onOrOff)
 }
 
 int main() {
