@@ -194,57 +194,58 @@ void MAIN_MENU() {
     colour::cout(")\n\n", "DEFAULT");
 
     // ↳ Exit option
-    colour::cout("0: Exit\n\n", "DEFAULT");
+    colour::cout("q: Exit\n\n", "DEFAULT");
     logger::log({"main.cpp", "MAIN_MENU"}, "Displayed welcome text.");
 
     // ↳ Prompt user
     auto validateInput = [](std::string input) -> bool {
         try {
             int choice = std::stoi(input);
-            return 0 <= choice && choice <= 5;
+            return 1 <= choice && choice <= 5;
         } catch (const std::invalid_argument &e) {
-            return false;
+            return input == "q";
         }
     };
 
     auto subsequent = [](std::string input) -> std::string {
-        return "Please enter a number from 0 to 5 (inclusive).";
+        return "Please enter a number from 1 to 5 (inclusive) or \"q\" to exit.";
     };
 
     // ↳ Wait for user input (A)
     // ↳ Validate user input
-    int choice;
+    int choiceInt;
+    std::string choiceStr = ask("Input the corresponding number to select an option:", validateInput, subsequent);
     try {
-        choice = std::stoi(ask("Input the corresponding number to select an option:", validateInput, subsequent));
-    } catch (const std::invalid_argument &e) {
-        logger::error({"main.cpp", "MAIN_MENU"}, "User input incorrectly accepted as a string.");
-        exitOnEnterPress(1, "User input should be an interger in string form.");
-    }
+        choiceInt = std::stoi(choiceStr);
 
-    // ↳ If correct GOTO the corresponding option (<Change Mods Folder> | <Help Centre, main> | <Edit favorite.txt>)
-    // ↳ Else GOTO (A)
-    switch (choice) {
-        case 0:
-            state::setState("exit", "", {});
-            break;
-        case 1:
-            state::updateState("enableOrDisableMods", "main");
-            break;
-        case 2:
-            state::updateState("editFavoritesTxt", "main");
-            break;
-        case 3:
-            state::updateState("editPresets", "main");
-            break;
-        case 4:
-            state::updateState("helpCentre", "main");
-            break;
-        case 5:
-            state::updateState("changeModsFolder", "main");
-            break;
-        default:
-            logger::error({"main.cpp", "MAIN_MENU"}, "User input incorrectly accepcted not from 0 to 5");
-            exitOnEnterPress(1, "User answer has been incorrectly accepted even though it was out of bounds.");
+        // ↳ If correct GOTO the corresponding option (<Change Mods Folder> | <Help Centre, main> | <Edit favorite.txt>)
+        // ↳ Else GOTO (A)
+        switch (choiceInt) {
+            case 1:
+                state::updateState("enableOrDisableMods", "main");
+                break;
+            case 2:
+                state::updateState("editFavoritesTxt", "main");
+                break;
+            case 3:
+                state::updateState("editPresets", "main");
+                break;
+            case 4:
+                state::updateState("helpCentre", "main");
+                break;
+            case 5:
+                state::updateState("changeModsFolder", "main");
+                break;
+            default:
+                logger::error({"main.cpp", "MAIN_MENU"}, "User input incorrectly accepcted not from 0 to 5");
+                exitOnEnterPress(1, "User answer has been incorrectly accepted even though it was out of bounds.");
+        }
+    } catch (const std::invalid_argument &e) {
+        if (choiceStr != "q") {
+            logger::error({"main.cpp", "MAIN_MENU"}, "User input incorrectly accepted.");
+            exitOnEnterPress(1, "User input accepted incorrectly.");
+        }
+        state::updateState("exit", "main");
     }
 }
 
