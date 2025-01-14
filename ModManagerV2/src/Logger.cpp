@@ -97,6 +97,8 @@ void error(const std::vector<std::string> &location, const std::string &text) {
         exit(1);
     }
     logFile.close();
+
+    colour::cerr("An error has occured. Please report this bug on GitHub with the log.txt file attached.\n", "RED");
 }
 
 }  // namespace logger

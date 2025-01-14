@@ -23,7 +23,6 @@ std::set<std::string> extractDependenciesFromZip(const fs::path &zipFilePath) {
     // ↳ Initialize the zip reader
     if (!mz_zip_reader_init_file(&zipArchive, zipFilePath.string().c_str(), 0)) {
         logger::error({"main.cpp", "extractDependenciesFromZip"}, "Failed to open ZIP file: " + zipFilePath.string());
-        colour::cerr("An error has occured. Please report this bug on GitHub with the log.txt file attached.\n", "RED");
         exitOnEnterPress(1, "Failed to open ZIP file: " + zipFilePath.string());
     }
 
@@ -122,7 +121,6 @@ void setup() {
             }
         }
     } catch (const fs::filesystem_error &e) {
-        colour::cerr("An error has occured. Please report this bug on GitHub with the log.txt file attached.\n", "RED");
         logger::error({"main.cpp", "setup", "For Loop 1"}, std::string(e.what()));
         exitOnEnterPress(1, std::string(e.what()));
     }
@@ -219,7 +217,6 @@ void MAIN_MENU() {
         choice = std::stoi(ask("Input the corresponding number to select an option:", validateInput, subsequent));
     } catch (const std::invalid_argument &e) {
         logger::error({"main.cpp", "MAIN_MENU"}, "User input incorrectly accepted as a string.");
-        colour::cerr("An error has occured. Please report this bug on GitHub with the log.txt file attached.\n", "RED");
         exitOnEnterPress(1, "User input should be an interger in string form.");
     }
     //     ↳ If correct GOTO the corresponding option (<Change Mods Folder> | <Help Centre, main> | <Edit favorite.txt>)
@@ -245,7 +242,6 @@ void MAIN_MENU() {
             break;
         default:
             logger::error({"main.cpp", "MAIN_MENU"}, "User input incorrectly accepcted not from 0 to 5");
-            colour::cerr("An error has occured. Please report this bug on GitHub with the log.txt file attached.\n", "RED");
             exitOnEnterPress(1, "User answer has been incorrectly accepted even though it was out of bounds.");
     }
 }
@@ -436,7 +432,6 @@ int main() {
             break;
         } else {
             logger::error({"main.cpp", "main"}, "An invalid state was found.");
-            colour::cerr("An error has occured. Please report this bug on GitHub with the log.txt file attached.\n", "RED");
             exitOnEnterPress(1, "An invalid state has been found.");
         }
     }
