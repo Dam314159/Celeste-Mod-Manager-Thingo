@@ -172,6 +172,7 @@ void setup() {
 // Main Menu
 void MAIN_MENU() {
     cls();
+
     // ↳ Display Text
     // ↳ Welcome message
     colour::cout("Welcome to the Celeste Mod Manager!\n", "DEFAULT");
@@ -219,6 +220,7 @@ void MAIN_MENU() {
         logger::error({"main.cpp", "MAIN_MENU"}, "User input incorrectly accepted as a string.");
         exitOnEnterPress(1, "User input should be an interger in string form.");
     }
+
     // ↳ If correct GOTO the corresponding option (<Change Mods Folder> | <Help Centre, main> | <Edit favorite.txt>)
     // ↳ Else GOTO (A)
     switch (choice) {
@@ -349,20 +351,32 @@ void MAIN_MENU() {
 // ↳ If exit, GOTO <Edit Presets, main>
 // ↳ If help, GOTO <Help centre, edit preset remove, [Edit presets, edit]>
 
-// Enable or Disable mods
+void turnOnMod(const std::string &modName) {
+    mods.at(modName).setIsEnabled(true);
+    logger::log({"main.cpp", "turnOnMod"}, "Turned on " + modName);
 
-// TODO: Add logging info
-void ENABLE_OR_DISABLE_MODS() {
-    std::vector<std::pair<std::string, bool>> favMods;
-    int i = 1;
-    for (const auto &[modName, modAttribute] : mods) {
-        if (modAttribute.getIsFavorite()) {
-            favMods.push_back({modName, modAttribute.getIsEnabled()});
-        }
-        i++;
+    if (mods.at(modName).getDependencies().size() < 1) {
+        return;
     }
 
+    for (const auto &dependencyName : mods.at(modName).getDependencies()) {
+        turnOnMod(dependencyName);
+    }
+}
+
+// Enable or Disable mods
+void ENABLE_OR_DISABLE_MODS() {
     while (true) {
+        std::vector<std::pair<std::string, bool>> favMods = {};
+        int i = 1;
+        for (const auto &[modName, modAttribute] : mods) {
+            if (modAttribute.getIsFavorite()) {
+                favMods.push_back({modName, modAttribute.getIsEnabled()});
+            }
+            i++;
+        }
+        logger::log({"main.cpp", "ENABLE_OR_DISABLE_MODS"}, "Set favMods list");
+
         // ↳ Display general info
         cls();
         colour::cout("This is where you can enable or disable mods.\n", "DEFAULT");
@@ -371,8 +385,21 @@ void ENABLE_OR_DISABLE_MODS() {
         colour::cout(" that can be found at ", "DEFAULT");
         colour::cout(settings::getSettings().at("modsFolderPath").get<std::string>() + " favorites.txt", "CYAN");
         colour::cout("\n\n", "DEFAULT");
+
         // ↳ Display favorites list
         printModsList(favMods);
+
+        int numOfMods = 0;
+        for (const auto &[key, value] : mods) {
+            if (value.getIsEnabled()) {
+                numOfMods++;
+            }
+        }
+        logger::log({"main.cpp", "ENABLE_OR_DISABLE_MODS"}, "Counted enabled mods");
+
+        colour::cout("\nYou currently have ", "DEFAULT");
+        colour::cout(std::to_string(numOfMods), "CYAN");
+        colour::cout(" mods enabled.\n", "DEFAULT");
 
         auto validation = [favMods](std::string input) -> bool {
             try {
@@ -395,31 +422,40 @@ void ENABLE_OR_DISABLE_MODS() {
 
         // ↳ Prompt user (A)
         // ↳ Validate user input
-        std::string choice = ask("\n Enter the number corresponding to the mod you want to toggle, \"q\" to go back, or \"h\" for the help center.", validation, subsequent);
+        std::string choice = ask("Enter the number corresponding to the mod you want to toggle, \"q\" to go back, or \"h\" for the help center.", validation, subsequent);
         try {
             // ↳ if number, RUN togglemod
             int chosenMod = std::stoi(choice) - 1;
             favMods[chosenMod].second = !favMods[chosenMod].second;
 
+            // Disable all mods
+            for (auto &[key, value] : mods) {
+                value.setIsEnabled(false);
+            }
+
+            // For favourite mod installed, enable all mods and dependencies
+            for (const auto &favMod : favMods) {
+                if (!favMod.second) {
+                    continue;
+                }
+
+                turnOnMod(favMod.first);
+            }
+
         } catch (const std::invalid_argument &e) {
             if (choice == "q") {
                 // ↳ if exit, write to blacklist.txt
                 state::returnToPreviousState();
+                logger::log({"main.cpp", "ENABLE_OR_DISABLE_MODS"}, "Exit");
 
             } else if (choice == "h") {
                 // ↳ if help, GOTO <Help centre, enable or diable mods, [enable or disable mods]>
                 state::updateState("helpCenter", "enableOrDisableMods");
+                logger::log({"main.cpp", "ENABLE_OR_DISABLE_MODS"}, "Go to help center");
             }
             break;
         }
     }
-
-    // f : togglemod(modToToggle, itsDependencies, onOrOff)
-    // ↳ modToToggle -> turn onOrOff
-    // ↳ if itsDependencies < 1
-    // ↳ exit
-    // ↳ for(dependency in itsDependencies)
-    // ↳ RUN togglemod(dependency, dependency[dependencies], onOrOff)
 }
 
 int main() {
