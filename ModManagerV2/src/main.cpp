@@ -86,13 +86,17 @@ std::set<std::string> extractDependenciesFromZip(const fs::path &zipFilePath) {
 
 // f : Setup
 std::map<std::string, ModAttribute> mods;
+std::map<std::string, std::set<std::string>> modPresets;
 void setup() {
     colour::cout("Loading...", "MAGENTA");
+
     logger::init();
     logger::log({"main.cpp", "setup"}, "Successfully initialised logger.");
 
     settings::init();
     logger::log({"main.cpp", "setup"}, "Successfully initialised settings.");
+
+    bool warn = false;
 
     // ↳ Check if mods folder path is set correctly
     fs::path modsFolderPath = settings::getSettings()["modsFolderPath"];
@@ -127,46 +131,60 @@ void setup() {
 
     // ↳ From favorites.txt load into [A]
     std::ifstream favoriteTxt(modsFolderPath / "favorites.txt");
-    for (std::string line; std::getline(favoriteTxt, line);) {
-        if (line[0] == '#' || line.length() < 1) {
-            continue;
-        }
+    if (favoriteTxt.is_open()) {
+        for (std::string line; std::getline(favoriteTxt, line);) {
+            if (line[0] == '#' || line.length() < 1) {
+                continue;
+            }
 
-        mods[line].setIsFavorite(true);
-        logger::log({"main.cpp", "setup"}, "favorited " + line + " from favorites.txt.");
+            mods[line].setIsFavorite(true);
+            logger::log({"main.cpp", "setup"}, "favorited " + line + " from favorites.txt.");
+        }
+        favoriteTxt.close();
+    } else {
+        logger::warn({"main.cpp", "setup"}, "favorites.txt not found.");
+        warn = true;
     }
-    favoriteTxt.close();
 
     // ↳ From blacklist.txt load into [A]
     std::ifstream blacklistTxt(modsFolderPath / "blacklist.txt");
-    for (std::string line; std::getline(blacklistTxt, line);) {
-        if (line[0] == '#' || line.length() < 1) {
-            continue;
-        }
+    if (blacklistTxt.is_open()) {
+        for (std::string line; std::getline(blacklistTxt, line);) {
+            if (line[0] == '#' || line.length() < 1) {
+                continue;
+            }
 
-        mods[line].setIsEnabled(false);
-        logger::log({"main.cpp", "setup"}, "Disabled " + line + " from blacklist.txt.");
+            mods[line].setIsEnabled(false);
+            logger::log({"main.cpp", "setup"}, "Disabled " + line + " from blacklist.txt.");
+        }
+        blacklistTxt.close();
+    } else {
+        logger::warn({"main.cpp", "setup"}, "blacklist.txt not found.");
+        warn = true;
     }
-    blacklistTxt.close();
 
     // ↳ Get presets from modpresets
     // ↳ Load into a dict<string, set>[C]
-    std::map<std::string, std::set<std::string>> modPresets;
     std::ifstream modPresetsTxt(modsFolderPath / "modpresets.txt");
-    for (std::string line, currentPreset; std::getline(modPresetsTxt, line);) {
-        if (line[0] == '#' || line.length() < 1) {
-            continue;
+    if (modPresetsTxt.is_open()) {
+        for (std::string line, currentPreset; std::getline(modPresetsTxt, line);) {
+            if (line[0] == '#' || line.length() < 1) {
+                continue;
+            }
+            if (line.substr(0, 2) == "**") {
+                currentPreset = line.substr(2);
+                logger::log({"main.cpp", "setup"}, "Added " + currentPreset + " to modPresets.");
+                continue;
+            }
+            modPresets[currentPreset].insert(line);
+            logger::log({"main.cpp", "setup"}, "Added " + line + " to " + currentPreset + " in modPresets.");
         }
-        if (line.substr(0, 2) == "**") {
-            currentPreset = line.substr(2);
-            logger::log({"main.cpp", "setup"}, "Added " + currentPreset + " to modPresets.");
-            continue;
-        }
-        modPresets[currentPreset].insert(line);
-        logger::log({"main.cpp", "setup"}, "Added " + line + " to " + currentPreset + " in modPresets.");
+    } else {
+        logger::warn({"main.cpp", "setup"}, "modpresets.txt not found");
+        warn = true;
     }
 
-    state::setState("mainMenu", "", {});
+    state::setState("mainMenu", warn ? "warn" : "normal", {});
 }
 
 // Main Menu
@@ -180,86 +198,126 @@ void MAIN_MENU() {
     colour::cout("helper mods and dependencies", "CYAN");
     colour::cout(" sucking up all your RAM.\n\n", "DEFAULT");
 
-    // ↳ Options
-    colour::cout("Options:\n", "DEFAULT");
-    colour::cout("1: Enable or Disable mods\n", "DEFAULT");
-    colour::cout("2: Edit favorite.txt file\n", "DEFAULT");
-    colour::cout("3: Edit presets\n", "DEFAULT");
-    colour::cout("4: Help Center\n", "DEFAULT");
+    if (state::getSubState() == "normal") {
+        // ↳ Options
+        colour::cout("Options:\n", "DEFAULT");
+        colour::cout("1: Enable or Disable mods\n", "DEFAULT");
+        colour::cout("2: Edit favorite.txt file\n", "DEFAULT");
+        colour::cout("3: Edit presets\n", "DEFAULT");
+        colour::cout("4: Help Center\n", "DEFAULT");
 
-    // ↳ Current mods folder
-    // ↳ Change mods folder option
-    colour::cout("5: Change mods folder (Currently set to: ", "DEFAULT");
-    colour::cout(settings::getSettings().at("modsFolderPath").get<std::string>(), "CYAN");
-    colour::cout(")\n\n", "DEFAULT");
+        // ↳ Current mods folder
+        // ↳ Change mods folder option
+        colour::cout("5: Change mods folder (Currently set to: ", "DEFAULT");
+        colour::cout(settings::getSettings().at("modsFolderPath").get<std::string>(), "CYAN");
+        colour::cout(")\n\n", "DEFAULT");
 
-    // ↳ Exit option
-    colour::cout("q: Exit\n\n", "DEFAULT");
-    logger::log({"main.cpp", "MAIN_MENU"}, "Displayed welcome text.");
+        // ↳ Exit option
+        colour::cout("q: Exit\n\n", "DEFAULT");
+        logger::log({"main.cpp", "MAIN_MENU"}, "Displayed welcome text.");
 
-    // ↳ Prompt user
-    auto validateInput = [](std::string input) -> bool {
+        // ↳ Prompt user
+        auto validateInput = [](std::string input) -> bool {
+            try {
+                int choice = std::stoi(input);
+                return 1 <= choice && choice <= 5;
+            } catch (const std::invalid_argument &e) {
+                return input == "q";
+            }
+        };
+
+        auto subsequent = [](std::string input) -> std::string {
+            return "Please enter a number from 1 to 5 (inclusive), or \"q\" to exit.";
+        };
+
+        // ↳ Wait for user input (A)
+        // ↳ Validate user input
+        int choiceInt;
+        std::string choiceStr = ask("Input the corresponding number to select an option:", validateInput, subsequent);
         try {
-            int choice = std::stoi(input);
-            return 1 <= choice && choice <= 5;
+            choiceInt = std::stoi(choiceStr);
+
+            // ↳ If correct GOTO the corresponding option (<Change Mods Folder> | <Help Centre, main> | <Edit favorite.txt>)
+            // ↳ Else GOTO (A)
+            switch (choiceInt) {
+                case 1:
+                    state::updateState("enableOrDisableMods", "main");
+                    break;
+                case 2:
+                    state::updateState("editFavoritesTxt", "main");
+                    break;
+                case 3:
+                    state::updateState("editPresets", "main");
+                    break;
+                case 4:
+                    state::updateState("helpCentre", "main");
+                    break;
+                case 5:
+                    state::updateState("changeModsFolder", "main");
+                    break;
+                default:
+                    logger::error({"main.cpp", "MAIN_MENU"}, "User input incorrectly accepcted not from 0 to 5");
+                    exitOnEnterPress(1, "User answer has been incorrectly accepted even though it was out of bounds.");
+            }
         } catch (const std::invalid_argument &e) {
-            return input == "q";
+            if (choiceStr != "q") {
+                logger::error({"main.cpp", "MAIN_MENU"}, "User input incorrectly accepted.");
+                exitOnEnterPress(1, "User input accepted incorrectly.");
+            }
+            state::updateState("exit", "");
         }
-    };
+        return;
+    }
 
-    auto subsequent = [](std::string input) -> std::string {
-        return "Please enter a number from 1 to 5 (inclusive) or \"q\" to exit.";
-    };
+    if (state::getSubState() == "warn") {
+        colour::cout("It seems like some important files have not been found. Please change your mods folder or create the needed files.\n", std::array<int, 3>{255, 130, 0});
+        colour::cout("(blacklist.txt, favorites.txt, modpresets.txt)\n\n", std::array<int, 3>{255, 130, 0});
+        logger::warn({"main.cpp", "MAIN_MENU"}, "Displayer mein menu warning text");
 
-    // ↳ Wait for user input (A)
-    // ↳ Validate user input
-    int choiceInt;
-    std::string choiceStr = ask("Input the corresponding number to select an option:", validateInput, subsequent);
-    try {
-        choiceInt = std::stoi(choiceStr);
+        colour::cout("Options:\n", "DEFAULT");
+        colour::cout("1: Change mods folder (Currently set to: ", "DEFAULT");
+        colour::cout(settings::getSettings().at("modsFolderPath").get<std::string>(), "CYAN");
+        colour::cout(")\n\n", "DEFAULT");
 
-        // ↳ If correct GOTO the corresponding option (<Change Mods Folder> | <Help Centre, main> | <Edit favorite.txt>)
-        // ↳ Else GOTO (A)
-        switch (choiceInt) {
-            case 1:
-                state::updateState("enableOrDisableMods", "main");
-                break;
-            case 2:
-                state::updateState("editFavoritesTxt", "main");
-                break;
-            case 3:
-                state::updateState("editPresets", "main");
-                break;
-            case 4:
-                state::updateState("helpCentre", "main");
-                break;
-            case 5:
-                state::updateState("changeModsFolder", "main");
-                break;
-            default:
-                logger::error({"main.cpp", "MAIN_MENU"}, "User input incorrectly accepcted not from 0 to 5");
-                exitOnEnterPress(1, "User answer has been incorrectly accepted even though it was out of bounds.");
+        colour::cout("q: Exit\n\n", "DEFAULT");
+
+        auto validateInput = [](std::string input) -> bool {
+            try {
+                int choice = std::stoi(input);
+                return choice == 1;
+            } catch (const std::invalid_argument &e) {
+                return input == "q";
+            }
+        };
+
+        auto subsequent = [](std::string input) -> std::string {
+            return "Please enter 1, or \"q\" to exit.";
+        };
+
+        std::string choiceStr = ask("Input the corresponding number to select an option:", validateInput, subsequent);
+
+        if (choiceStr == "1") {
+            state::updateState("changeModsFolder", "main");
+        } else if (choiceStr == "q") {
+            state::updateState("exit", "main");
         }
-    } catch (const std::invalid_argument &e) {
-        if (choiceStr != "q") {
-            logger::error({"main.cpp", "MAIN_MENU"}, "User input incorrectly accepted.");
-            exitOnEnterPress(1, "User input accepted incorrectly.");
-        }
-        state::updateState("exit", "main");
     }
 }
 
 // Change Mods Folder
-// ↳ Display Text
-// ↳ General info
-// ↳ How to find the correct folder
-// ↳ Prompt user
-// ↳ Wait for user input (A)
-// ↳ Validate and sanitise user input
-// ↳ If correct
-// ↳ RUN  <Setup>
-// ↳ GOTO <Main Menu>
-// ↳ Else goto(A)
+void CHANGE_MODS_FOLDER() {
+    // ↳ Display Text
+    cls();
+    // ↳ General info
+    // ↳ How to find the correct folder
+    // ↳ Prompt user
+    // ↳ Wait for user input (A)
+    // ↳ Validate and sanitise user input
+    // ↳ If correct
+    // ↳ RUN  <Setup>
+    // ↳ GOTO <Main Menu>
+    // ↳ Else goto(A)
+}
 
 // Help Centre
 // substate: main
@@ -469,7 +527,7 @@ int main() {
         } else if (state::getState() == "exit") {
             break;
         } else {
-            logger::error({"main.cpp", "main"}, "An invalid state was found.");
+            logger::error({"main.cpp", "main"}, "An invalid state, " + state::getState() + ", was found.");
             exitOnEnterPress(1, "An invalid state has been found.");
         }
     }
