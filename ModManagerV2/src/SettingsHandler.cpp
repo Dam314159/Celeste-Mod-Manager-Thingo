@@ -7,6 +7,7 @@ namespace settings {
 
 void init() {
     std::ifstream settingsFile(settingsFilePath);
+    config = {};
     if (settingsFile.is_open()) {
         logger::log({"SettingsHandler.cpp", "settings::init"}, "Settings file found at " + settingsFilePath.string());
         try {
