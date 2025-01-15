@@ -13,7 +13,10 @@
 namespace colour {
 
 void cout(const std::string &text, const std::string &colour);
+void cout(const std::string &text, const std::array<int, 3> &colour);
+
 void cerr(const std::string &text, const std::string &colour);
+void cerr(const std::string &text, const std::array<int, 3> &colour);
 
 }  // namespace colour
 

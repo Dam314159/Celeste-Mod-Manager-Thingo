@@ -18,9 +18,37 @@ void cout(const std::string &text, const std::string &colour) {
     // logger::log({"ConsoleStuff.cpp", "colour::cout"}, "Printed \"" + text + "\" in " + colour + " colour.");
 }
 
+void cout(const std::string &text, const std::array<int, 3> &colour) {
+    if (0 <= colour[0] && colour[0] <= 255) {
+        logger::warn({"ConsoleStuff.cpp", "colour::cout"}, "R value is out of bounds for while printing " + text);
+    }
+    if (0 <= colour[1] && colour[1] <= 255) {
+        logger::warn({"ConsoleStuff.cpp", "colour::cout"}, "R value is out of bounds for while printing " + text);
+    }
+    if (0 <= colour[2] && colour[2] <= 255) {
+        logger::warn({"ConsoleStuff.cpp", "colour::cout"}, "R value is out of bounds for while printing " + text);
+    }
+
+    std::cout << "\u001b[38;2;" << colour[0] << ";" << colour[1] << ";" << colour[2] << "m" << text;
+}
+
 void cerr(const std::string &text, const std::string &colour) {
     std::cerr << colourCodes.at(colour) << text;
     // logger::log({"ConsoleStuff.cpp", "colour::cerr"}, "Printed \"" + text + "\" in " + colour + " colour.");
+}
+
+void cerr(const std::string &text, const std::array<int, 3> &colour) {
+    if (0 <= colour[0] && colour[0] <= 255) {
+        logger::warn({"ConsoleStuff.cpp", "colour::cout"}, "R value is out of bounds for while printing " + text);
+    }
+    if (0 <= colour[1] && colour[1] <= 255) {
+        logger::warn({"ConsoleStuff.cpp", "colour::cout"}, "R value is out of bounds for while printing " + text);
+    }
+    if (0 <= colour[2] && colour[2] <= 255) {
+        logger::warn({"ConsoleStuff.cpp", "colour::cout"}, "R value is out of bounds for while printing " + text);
+    }
+
+    std::cerr << "\u001b[38;2;" << colour[0] << ";" << colour[1] << ";" << colour[2] << "m" << text;
 }
 
 }  // namespace colour
@@ -37,12 +65,13 @@ void cls() {
 }
 
 void exitOnEnterPress(const int &exitCode, const std::string &message) {
-    colour::cout("Press enter to exit...", "DEFAULT");
     std::cin.get();
     if (exitCode == 0) {
+        colour::cout("Press enter to exit...", "DEFAULT");
         logger::log({"ConsoleStuff.cpp", "exitOnEnterPress"}, "Exited with code 0. " + message);
     } else {
         logger::error({"ConsoleStuff.cpp", "exitOnEnterPress"}, "Exited with code " + std::to_string(exitCode) + ". " + message);
+        colour::cout("Press enter to exit...", "DEFAULT");
     }
     exit(exitCode);
 }
