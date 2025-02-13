@@ -56,6 +56,7 @@ std::set<std::string> extractDependenciesFromZip(const fs::path &zipFilePath) {
         std::stringstream fileContent(std::string(buffer.begin(), buffer.end()));
         mz_zip_reader_end(&zipArchive);  // Cleanup
 
+        // For every line in everesy.yaml
         std::string line;
         bool isDependency = false;
         while (std::getline(fileContent, line, '\n')) {
@@ -68,16 +69,20 @@ std::set<std::string> extractDependenciesFromZip(const fs::path &zipFilePath) {
                 continue;
             }
 
-            if (isDependency && line.substr(0, 12) == "    - Name: ") {
-                std::string dependencyName = std::isspace(line[line.size() - 1]) ? line.substr(12, line.size() - 13) : line.substr(12);
-                if (!dependencyName.empty() &&
-                    dependencyName != "Everest" &&
-                    dependencyName != "EverestCore" &&
-                    dependencyName != "Celeste" &&
-                    dependencyName != zipFilePath.stem().string()) {
-                    dependencies.insert(dependencyName + ".zip");
-                    logger::log({"main.cpp", "extractDependenciesFromZip"}, "Added " + dependencyName + ".zip to dependencies.");
-                }
+            if (!isDependency || line.substr(0, 12) != "    - Name: ") {
+                continue;
+            }
+
+            std::string dependencyName = std::isspace(line[line.size() - 1]) ? line.substr(12, line.size() - 13) : line.substr(12);
+
+            // TODO: Make this some sort of blacklist
+            if (!dependencyName.empty() &&
+                dependencyName != "Everest" &&
+                dependencyName != "EverestCore" &&
+                dependencyName != "Celeste" &&
+                dependencyName != zipFilePath.stem().string()) {
+                dependencies.insert(dependencyName + ".zip");
+                logger::log({"main.cpp", "extractDependenciesFromZip"}, "Added " + dependencyName + ".zip to dependencies.");
             }
         }
     }
@@ -97,6 +102,8 @@ void setup() {
     logger::log({"main.cpp", "setup"}, "Successfully initialised settings.");
 
     bool warn = false;
+    mods = {};
+    modPresets = {};
 
     // ↳ Check if mods folder path is set correctly
     fs::path modsFolderPath = settings::getSettings()["modsFolderPath"];
@@ -119,10 +126,12 @@ void setup() {
     // ↳ Load dependencies into [A]
     try {
         for (const fs::path &entry : fs::directory_iterator(modsFolderPath)) {
-            if (fs::is_regular_file(entry) && entry.extension().string() == ".zip") {
-                mods.insert({entry.filename().string(), ModAttribute(false, true, extractDependenciesFromZip(entry))});
-                logger::log({"main.cpp", "setup"}, "Added " + entry.filename().string() + " to mods.");
+            if (!fs::is_regular_file(entry) || entry.extension().string() != ".zip") {
+                continue;
             }
+
+            mods.insert({entry.filename().string(), ModAttribute(false, true, extractDependenciesFromZip(entry))});
+            logger::log({"main.cpp", "setup"}, "Added " + entry.filename().string() + " to mods.");
         }
     } catch (const fs::filesystem_error &e) {
         logger::error({"main.cpp", "setup", "For Loop 1"}, std::string(e.what()));
@@ -197,6 +206,7 @@ void MAIN_MENU() {
     colour::cout("This mod was created by me so that you don't have to deal with the hassle of ", "DEFAULT");
     colour::cout("helper mods and dependencies", "CYAN");
     colour::cout(" sucking up all your RAM.\n\n", "DEFAULT");
+    colour::cout("This program only currently works with zip files. Support of folders (unzipped) will come soon. (and by soon, I mean when I feel like it)\n\n", std::array<int, 3>{255, 130, 0});
 
     if (state::getSubState() == "normal") {
         // ↳ Options
@@ -307,16 +317,38 @@ void MAIN_MENU() {
 // Change Mods Folder
 void CHANGE_MODS_FOLDER() {
     // ↳ Display Text
-    cls();
     // ↳ General info
+    cls();
+    colour::cout("This is where you can change the mods folder.\n", "DEFAULT");
+    colour::cout("Your mods folder is currently: ", "DEFAULT");
+    colour::cout(settings::getSettings().at("modsFolderPath").get<std::string>(), "CYAN");
+
     // ↳ How to find the correct folder
+    colour::cout("\nYou can find your mods folder by opening Olympus -> \"Manage Installed Mods\" -> (near the top) Open Mods Folder -> (In file explorer) Copy file path -> Paste it in the prompt\n\n", "YELLOW");
+    colour::cout("Alternatively, you can enter \"q\" to go back to the main menu.", "YELLOW");
+
     // ↳ Prompt user
     // ↳ Wait for user input (A)
     // ↳ Validate and sanitise user input
+    auto validation = [](const std::string &input) -> bool {
+        return fs::exists(input) || input == "q";
+    };
+
+    auto subsequent = [](const std::string &input) -> std::string {
+        return "File path does not exist or cannot be accessed.";
+    };
+
     // ↳ If correct
-    // ↳ RUN  <Setup>
+    std::string filePath = ask("Please paste in the folder path here.", validation, subsequent);
+    if (filePath != "q") {
+        // ↳ RUN  <Setup>
+        settings::updateSettings("modsFolderPath", filePath);
+        setup();
+    }
     // ↳ GOTO <Main Menu>
     // ↳ Else goto(A)
+    state::returnToPreviousState();
+    return;
 }
 
 // Help Centre
@@ -355,17 +387,65 @@ void CHANGE_MODS_FOLDER() {
 // ↳ Return user based on tracker
 
 // Edit favorite.txt
-// ↳ Display general info
-// ↳ Display list of mods "[x] modsname"
-// ↳ Prompt user (A)
-// ↳ Validate user input
-// ↳ If number edit the list
-// ↳ If done
-// ↳ Write to favorites.txt
-// ↳ GOTO <Main Menu>
-// ↳ If help
-// ↳ GOTO <Help Centre, edit favorites.txt, [favorites.txt]>
-// ↳ Else goto (A)
+// TODO: Add logging
+void EDIT_FAVORITES_TXT() {
+    // ↳ Display general info
+    cls();
+    colour::cout("This is where you can toggle if the mods are in the favourites list.\n\n", "YELLOW");
+
+    // ↳ Display list of mods "[x] modsname"
+    std::vector<std::pair<std::string, bool>> allMods;
+    for (const auto &[key, value] : mods) {
+        allMods.push_back({key, value.getIsFavorite()});
+    }
+
+    printModsList(allMods);
+
+    auto validation = [allMods](const std::string &input) -> bool {
+        try {
+            int choice = std::stoi(input);
+            return 1 <= choice && choice <= allMods.size();
+        } catch (const std::invalid_argument &e) {
+            return input == "q" || input == "h";
+        }
+    };
+
+    auto subsequent = [allMods](const std::string &input) -> std::string {
+        try {
+            int choice = std::stoi(input);
+            return "Please enter a number from 1 to " + std::to_string(allMods.size());
+        } catch (const std::invalid_argument &e) {
+            return "Enter a number, \"q\" to go back, or \"h\" for help.";
+        }
+    };
+
+    // ↳ Prompt user (A)
+    // ↳ Validate user input
+    std::string choice = ask("\nEnter the number corresponding to the mod you want to toggle, \"q\" to go back, or \"h\" for the help center.", validation, subsequent);
+    try {
+        // ↳ If number edit the list
+        int choiceNum = std::stoi(choice);
+        choiceNum--;
+        mods.at(allMods[choiceNum].first).setIsFavorite(!mods.at(allMods[choiceNum].first).getIsFavorite());
+        // ↳ If done
+        // ↳ TODO: Write to favorites.txt
+        return;
+    } catch (const std::invalid_argument &e) {
+        if (choice == "q") {
+            // ↳ GOTO <Main Menu>
+            state::returnToPreviousState();
+            return;
+        }
+
+        // ↳ If help
+        if (choice == "h") {
+            // ↳ GOTO <Help Centre, edit favorites.txt, [favorites.txt]>
+            state::updateState("helpCentre", "editFavoritesTxt");
+            return;
+        }
+    }
+    // ↳ Else goto (A)
+}
 
 // Edit Presets
 // substate: main
@@ -425,94 +505,93 @@ void turnOnMod(const std::string &modName) {
 
 // Enable or Disable mods
 void ENABLE_OR_DISABLE_MODS() {
-    while (true) {
-        std::vector<std::pair<std::string, bool>> favMods = {};
-        int i = 1;
-        for (const auto &[modName, modAttribute] : mods) {
-            if (modAttribute.getIsFavorite()) {
-                favMods.push_back({modName, modAttribute.getIsEnabled()});
-            }
-            i++;
+    std::vector<std::pair<std::string, bool>> favMods = {};
+    int i = 1;
+    for (const auto &[modName, modAttribute] : mods) {
+        if (modAttribute.getIsFavorite()) {
+            favMods.push_back({modName, modAttribute.getIsEnabled()});
         }
-        logger::log({"main.cpp", "ENABLE_OR_DISABLE_MODS"}, "Set favMods list");
+        i++;
+    }
+    logger::log({"main.cpp", "ENABLE_OR_DISABLE_MODS"}, "Set favMods list");
 
-        // ↳ Display general info
-        cls();
-        colour::cout("This is where you can enable or disable mods.\n", "DEFAULT");
-        colour::cout("The list shown below is based off the ", "DEFAULT");
-        colour::cout("favorites.txt file", "CYAN");
-        colour::cout(" that can be found at ", "DEFAULT");
-        colour::cout(settings::getSettings().at("modsFolderPath").get<std::string>() + " favorites.txt", "CYAN");
-        colour::cout("\n\n", "DEFAULT");
+    // ↳ Display general info
+    cls();
+    colour::cout("This is where you can enable or disable mods.\n", "DEFAULT");
+    colour::cout("The list shown below is based off the ", "DEFAULT");
+    colour::cout("favorites.txt file", "CYAN");
+    colour::cout(" that can be found at ", "DEFAULT");
+    colour::cout(settings::getSettings().at("modsFolderPath").get<std::string>() + " favorites.txt", "CYAN");
+    colour::cout("\n\n", "DEFAULT");
 
-        // ↳ Display favorites list
-        printModsList(favMods);
+    // ↳ Display favorites list
+    printModsList(favMods);
 
-        int numOfMods = 0;
-        for (const auto &[key, value] : mods) {
-            if (value.getIsEnabled()) {
-                numOfMods++;
-            }
+    int numOfMods = 0;
+    for (const auto &[key, value] : mods) {
+        if (value.getIsEnabled()) {
+            numOfMods++;
         }
-        logger::log({"main.cpp", "ENABLE_OR_DISABLE_MODS"}, "Counted enabled mods");
+    }
+    logger::log({"main.cpp", "ENABLE_OR_DISABLE_MODS"}, "Counted enabled mods");
 
-        colour::cout("\nYou currently have ", "DEFAULT");
-        colour::cout(std::to_string(numOfMods), "CYAN");
-        colour::cout(" mods enabled.\n", "DEFAULT");
+    colour::cout("\nYou currently have ", "DEFAULT");
+    colour::cout(std::to_string(numOfMods), "CYAN");
+    colour::cout(" mods enabled.\n", "DEFAULT");
 
-        auto validation = [favMods](std::string input) -> bool {
-            try {
-                int choice = std::stoi(input);
-                return (1 <= choice && choice <= favMods.size());
-
-            } catch (const std::invalid_argument &e) {
-                return (input == "q" || input == "h");
-            }
-        };
-
-        auto subsequent = [favMods](std::string input) -> std::string {
-            try {
-                int choice = std::stoi(input);
-                return "Please enter a number from 1 to " + std::to_string(favMods.size());
-            } catch (const std::invalid_argument &e) {
-                return "Enter a number, \"q\" to go back, or \"h\" for help.";
-            }
-        };
-
-        // ↳ Prompt user (A)
-        // ↳ Validate user input
-        std::string choice = ask("Enter the number corresponding to the mod you want to toggle, \"q\" to go back, or \"h\" for the help center.", validation, subsequent);
+    auto validation = [favMods](const std::string &input) -> bool {
         try {
-            // ↳ if number, RUN togglemod
-            int chosenMod = std::stoi(choice) - 1;
-            favMods[chosenMod].second = !favMods[chosenMod].second;
-
-            // Disable all mods
-            for (auto &[key, value] : mods) {
-                value.setIsEnabled(false);
-            }
-
-            // For favourite mod installed, enable all mods and dependencies
-            for (const auto &favMod : favMods) {
-                if (!favMod.second) {
-                    continue;
-                }
-
-                turnOnMod(favMod.first);
-            }
+            int choice = std::stoi(input);
+            return (1 <= choice && choice <= favMods.size());
 
         } catch (const std::invalid_argument &e) {
-            if (choice == "q") {
-                // ↳ if exit, write to blacklist.txt
-                state::returnToPreviousState();
-                logger::log({"main.cpp", "ENABLE_OR_DISABLE_MODS"}, "Exit");
+            return (input == "q" || input == "h");
+        }
+    };
 
-            } else if (choice == "h") {
-                // ↳ if help, GOTO <Help centre, enable or diable mods, [enable or disable mods]>
-                state::updateState("helpCenter", "enableOrDisableMods");
-                logger::log({"main.cpp", "ENABLE_OR_DISABLE_MODS"}, "Go to help center");
+    auto subsequent = [favMods](const std::string &input) -> std::string {
+        try {
+            int choice = std::stoi(input);
+            return "Please enter a number from 1 to " + std::to_string(favMods.size());
+        } catch (const std::invalid_argument &e) {
+            return "Enter a number, \"q\" to go back, or \"h\" for help.";
+        }
+    };
+
+    // ↳ Prompt user (A)
+    // ↳ Validate user input
+    std::string choice = ask("Enter the number corresponding to the mod you want to toggle, \"q\" to go back, or \"h\" for the help center.", validation, subsequent);
+    try {
+        // ↳ if number, RUN togglemod
+        int chosenMod = std::stoi(choice) - 1;
+        favMods[chosenMod].second = !favMods[chosenMod].second;
+
+        // Disable all mods
+        for (auto &[key, value] : mods) {
+            value.setIsEnabled(false);
+        }
+
+        // For favourite mod installed, enable all mods and dependencies
+        for (const auto &favMod : favMods) {
+            if (!favMod.second) {
+                continue;
             }
-            break;
+
+            turnOnMod(favMod.first);
+        }
+
+    } catch (const std::invalid_argument &e) {
+        if (choice == "q") {
+            // ↳ TODO: if exit, write to blacklist.txt
+            state::returnToPreviousState();
+            logger::log({"main.cpp", "ENABLE_OR_DISABLE_MODS"}, "Exit");
+            return;
+
+        } else if (choice == "h") {
+            // ↳ if help, GOTO <Help centre, enable or diable mods, [enable or disable mods]>
+            state::updateState("helpCenter", "enableOrDisableMods");
+            logger::log({"main.cpp", "ENABLE_OR_DISABLE_MODS"}, "Go to help center");
+            return;
         }
     }
 }
@@ -524,6 +603,10 @@ int main() {
             MAIN_MENU();
         } else if (state::getState() == "enableOrDisableMods") {
             ENABLE_OR_DISABLE_MODS();
+        } else if (state::getState() == "editFavoritesTxt") {
+            EDIT_FAVORITES_TXT();
+        } else if (state::getState() == "changeModsFolder") {
+            CHANGE_MODS_FOLDER();
         } else if (state::getState() == "exit") {
             break;
         } else {
