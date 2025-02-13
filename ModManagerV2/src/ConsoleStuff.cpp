@@ -23,10 +23,10 @@ void cout(const std::string &text, const std::array<int, 3> &colour) {
         logger::warn({"ConsoleStuff.cpp", "colour::cout"}, "R value is out of bounds for while printing " + text);
     }
     if (0 <= colour[1] && colour[1] <= 255) {
-        logger::warn({"ConsoleStuff.cpp", "colour::cout"}, "R value is out of bounds for while printing " + text);
+        logger::warn({"ConsoleStuff.cpp", "colour::cout"}, "G value is out of bounds for while printing " + text);
     }
     if (0 <= colour[2] && colour[2] <= 255) {
-        logger::warn({"ConsoleStuff.cpp", "colour::cout"}, "R value is out of bounds for while printing " + text);
+        logger::warn({"ConsoleStuff.cpp", "colour::cout"}, "B value is out of bounds for while printing " + text);
     }
 
     std::cout << "\u001b[38;2;" << colour[0] << ";" << colour[1] << ";" << colour[2] << "m" << text;
@@ -42,10 +42,10 @@ void cerr(const std::string &text, const std::array<int, 3> &colour) {
         logger::warn({"ConsoleStuff.cpp", "colour::cout"}, "R value is out of bounds for while printing " + text);
     }
     if (0 <= colour[1] && colour[1] <= 255) {
-        logger::warn({"ConsoleStuff.cpp", "colour::cout"}, "R value is out of bounds for while printing " + text);
+        logger::warn({"ConsoleStuff.cpp", "colour::cout"}, "G value is out of bounds for while printing " + text);
     }
     if (0 <= colour[2] && colour[2] <= 255) {
-        logger::warn({"ConsoleStuff.cpp", "colour::cout"}, "R value is out of bounds for while printing " + text);
+        logger::warn({"ConsoleStuff.cpp", "colour::cout"}, "B value is out of bounds for while printing " + text);
     }
 
     std::cerr << "\u001b[38;2;" << colour[0] << ";" << colour[1] << ";" << colour[2] << "m" << text;
