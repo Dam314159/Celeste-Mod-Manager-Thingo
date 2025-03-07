@@ -6,6 +6,7 @@
 #include <string>
 
 #include "Logger.h"
+#include "ConsoleStuff.h"
 
 class ModAttribute {
    public:

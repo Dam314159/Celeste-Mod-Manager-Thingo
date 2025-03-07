@@ -24,31 +24,33 @@ nlohmann::json getSettings();
 
 template <typename T>
 void updateSettings(const std::string &key, const T &value) {
-    logger::log({"SettingsHandler.cpp", "settings::updateSettings"}, config.dump(4));
+    logger::functionCall("settings::updateSettings", {key, anyToString(value)});
+    logger::log(config.dump(4));
     try {
         config.at(key) = value;
-        logger::log({"SettingsHandler.cpp", "settings::updateSettings"}, config.dump(4));
+        logger::log(config.dump(4));
         if constexpr (std::is_same_v<T, std::string>) {
-            logger::log({"SettingsHandler.cpp", "settings::updateSettings"}, key + " updated to " + value);
+            logger::log(key + " updated to " + value);
         } else {
-            logger::log({"SettingsHandler.cpp", "settings::updateSettings"}, key + " updated to " + std::to_string(value));
+            logger::log(key + " updated to " + std::to_string(value));
         }
     } catch (const json::out_of_range &e) {
         config[key] = value;
         if constexpr (std::is_same_v<T, std::string>) {
-            logger::log({"SettingsHandler.cpp", "settings::updateSettings"}, key + " added with value " + value);
+            logger::log(key + " added with value " + value);
         } else {
-            logger::log({"SettingsHandler.cpp", "settings::updateSettings"}, key + " added with value " + std::to_string(value));
+            logger::log(key + " added with value " + std::to_string(value));
         }
     }
     std::ofstream settingsFile(settingsFilePath);
     if (settingsFile.is_open()) {
         settingsFile << config.dump(4);
-        logger::log({"SettingsHandler.cpp", "settings::updateSettings"}, "Settings file updated.");
+        logger::log("Settings file updated.");
     } else {
-        logger::warn({"SettingsHandler.cpp", "settings::updateSettings"}, "Settings file not updated.");
+        logger::warn("Settings file not updated.");
     }
     settingsFile.close();
+    logger::functionExit();
 }
 
 }  // namespace settings

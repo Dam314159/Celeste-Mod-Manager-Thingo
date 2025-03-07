@@ -2,7 +2,9 @@
 
 ModAttribute::ModAttribute(const bool &isfavorite, const bool &isEnabled, const std::set<std::string> &dependencies)
     : isfavorite(isfavorite), isEnabled(isEnabled), dependencies(dependencies) {
-    logger::log({"ModAttribute.cpp", "Constructor"}, "Created ModAttribute object with isfavorite: " + std::to_string(isfavorite) + ", isEnabled: " + std::to_string(isEnabled) + ", and dependencies size: " + std::to_string(dependencies.size()));
+    logger::functionCall("ModAttribute constructor", {anyToString(isfavorite), anyToString(isEnabled), anyToString(dependencies)});
+    logger::log("Created ModAttribute object");
+    logger::functionExit();
 }
 
 // debug use only
@@ -15,7 +17,7 @@ void ModAttribute::print(const std::string &modName, const int &indent) const {
         std::cout << spaces << spaces << dependency << '\n';
     }
     std::cout << spaces << "Is Enabled: " << (isEnabled ? "True" : "False") << "\n\n";
-    logger::log({"ModAttribute.cpp", "print"}, "Called print.");
+    logger::log("Called print.");
 }
 
 bool ModAttribute::getIsFavorite() const {

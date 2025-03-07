@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <functional>
 #include <iostream>
+#include <set>
 #include <string>
 #include <unordered_map>
 
@@ -26,5 +27,6 @@ std::string ask(const std::string &question,
                 const std::function<bool(std::string)> &validation,
                 const std::function<std::string(std::string)> &subsequent);
 void printModsList(std::vector<std::pair<std::string, bool>> modsList);
+std::string anyToString(const std::any &value);
 
 #endif

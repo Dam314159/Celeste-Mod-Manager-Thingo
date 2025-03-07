@@ -16,15 +16,17 @@
 
 // f : extractDependenciesFromZip
 std::set<std::string> extractDependenciesFromZip(const fs::path &zipFilePath) {
+    logger::functionCall("extractDependenciesFromZip", {zipFilePath.string()});
     mz_zip_archive zipArchive;
     memset(&zipArchive, 0, sizeof(zipArchive));
     std::set<std::string> dependencies;
 
     // ↳ Initialize the zip reader
     if (!mz_zip_reader_init_file(&zipArchive, zipFilePath.string().c_str(), 0)) {
-        logger::error({"main.cpp", "extractDependenciesFromZip"}, "Failed to open ZIP file: " + zipFilePath.string());
+        logger::critical("Failed to open ZIP file: " + zipFilePath.string());
         exitOnEnterPress(1, "Failed to open ZIP file: " + zipFilePath.string());
     }
+    logger::log("Zip reader initialised");
 
     int numFiles = mz_zip_reader_get_num_files(&zipArchive);
 
@@ -45,18 +47,20 @@ std::set<std::string> extractDependenciesFromZip(const fs::path &zipFilePath) {
         if (filename != "everest.yaml") {
             continue;
         }
+        logger::log("Found everest.yaml");
 
         size_t fileSize = fileStat.m_uncomp_size;
         std::vector<char> buffer(fileSize);
         if (!mz_zip_reader_extract_to_mem(&zipArchive, i, buffer.data(), fileSize, 0)) {
-            logger::warn({"main.cpp", "extractDependenciesFromZip"}, "Failed to read everest.yaml from " + zipFilePath.string());
+            logger::warn("Failed to read everest.yaml from " + zipFilePath.string());
             continue;
         }
 
         std::stringstream fileContent(std::string(buffer.begin(), buffer.end()));
         mz_zip_reader_end(&zipArchive);  // Cleanup
+        logger::log("Ready to read everest.yaml");
 
-        // For every line in everesy.yaml
+        // For every line in everest.yaml
         std::string line;
         bool isDependency = false;
         while (std::getline(fileContent, line, '\n')) {
@@ -82,10 +86,11 @@ std::set<std::string> extractDependenciesFromZip(const fs::path &zipFilePath) {
                 dependencyName != "Celeste" &&
                 dependencyName != zipFilePath.stem().string()) {
                 dependencies.insert(dependencyName + ".zip");
-                logger::log({"main.cpp", "extractDependenciesFromZip"}, "Added " + dependencyName + ".zip to dependencies.");
+                logger::log("Added " + dependencyName + ".zip to dependencies.");
             }
         }
     }
+    logger::functionExit();
     return dependencies;
 }
 
@@ -96,10 +101,11 @@ void setup() {
     colour::cout("Loading...", "MAGENTA");
 
     logger::init();
-    logger::log({"main.cpp", "setup"}, "Successfully initialised logger.");
+    logger::functionCall("setup", {});
+    logger::log("Successfully initialised logger.");
 
     settings::init();
-    logger::log({"main.cpp", "setup"}, "Successfully initialised settings.");
+    logger::log("Successfully initialised settings.");
 
     bool warn = false;
     mods = {};
@@ -108,7 +114,7 @@ void setup() {
     // ↳ Check if mods folder path is set correctly
     fs::path modsFolderPath = settings::getSettings()["modsFolderPath"];
     if (!fs::exists(modsFolderPath)) {
-        logger::log({"main.cpp", "setup"}, "Mods folder path not found or does not exist.");
+        logger::log("Mods folder path not found or does not exist.");
         colour::cout("It seems like your mods folder is not specified or does not exist. Please enter your mods folder path below.\n", "DEFAULT");
         colour::cout("You can find the mod folder by going to Olympus -> Manage installed mods -> Open mods folder, then copy and pasting the file path here.\n\n", "DEFAULT");
         colour::cout("If you're still unsure, try \"C:\\Program Files (x86)\\Steam\\steamapps\\common\\Celeste\\Mods\" for Windows.\n", "DEFAULT");
@@ -118,7 +124,7 @@ void setup() {
             [](std::string input) { return "Invalid path. Please try again."; });
         settings::updateSettings<std::string>("modsFolderPath", modsFolderPath.string());
     }
-    logger::log({"main.cpp", "setup"}, "Mods folder path is " + modsFolderPath.string());
+    logger::log("Mods folder path is " + modsFolderPath.string());
 
     // ↳ Get all mod names by reading names of zip files
     // ↳ Get dependencies by unzipping mod zips and reading everst.yaml
@@ -131,10 +137,9 @@ void setup() {
             }
 
             mods.insert({entry.filename().string(), ModAttribute(false, true, extractDependenciesFromZip(entry))});
-            logger::log({"main.cpp", "setup"}, "Added " + entry.filename().string() + " to mods.");
+            logger::log("Added " + entry.filename().string() + " to mods.");
         }
     } catch (const fs::filesystem_error &e) {
-        logger::error({"main.cpp", "setup", "For Loop 1"}, std::string(e.what()));
         exitOnEnterPress(1, std::string(e.what()));
     }
 
@@ -147,11 +152,11 @@ void setup() {
             }
 
             mods[line].setIsFavorite(true);
-            logger::log({"main.cpp", "setup"}, "favorited " + line + " from favorites.txt.");
+            logger::log("favorited " + line + " from favorites.txt.");
         }
         favoriteTxt.close();
     } else {
-        logger::warn({"main.cpp", "setup"}, "favorites.txt not found.");
+        logger::warn("favorites.txt not found.");
         warn = true;
     }
 
@@ -164,11 +169,11 @@ void setup() {
             }
 
             mods[line].setIsEnabled(false);
-            logger::log({"main.cpp", "setup"}, "Disabled " + line + " from blacklist.txt.");
+            logger::log("Disabled " + line + " from blacklist.txt.");
         }
         blacklistTxt.close();
     } else {
-        logger::warn({"main.cpp", "setup"}, "blacklist.txt not found.");
+        logger::warn("blacklist.txt not found.");
         warn = true;
     }
 
@@ -182,22 +187,24 @@ void setup() {
             }
             if (line.substr(0, 2) == "**") {
                 currentPreset = line.substr(2);
-                logger::log({"main.cpp", "setup"}, "Added " + currentPreset + " to modPresets.");
+                logger::log("Added " + currentPreset + " to modPresets.");
                 continue;
             }
             modPresets[currentPreset].insert(line);
-            logger::log({"main.cpp", "setup"}, "Added " + line + " to " + currentPreset + " in modPresets.");
+            logger::log("Added " + line + " to " + currentPreset + " in modPresets.");
         }
     } else {
-        logger::warn({"main.cpp", "setup"}, "modpresets.txt not found");
+        logger::warn("modpresets.txt not found");
         warn = true;
     }
 
     state::setState("mainMenu", warn ? "warn" : "normal", {});
+    logger::functionExit();
 }
 
 // Main Menu
 void MAIN_MENU() {
+    logger::functionCall("MAIN_MENU", {});
     cls();
 
     // ↳ Display Text
@@ -207,8 +214,10 @@ void MAIN_MENU() {
     colour::cout("helper mods and dependencies", "CYAN");
     colour::cout(" sucking up all your RAM.\n\n", "DEFAULT");
     colour::cout("This program only currently works with zip files. Support of folders (unzipped) will come soon. (and by soon, I mean when I feel like it)\n\n", std::array<int, 3>{255, 130, 0});
+    logger::log("Welcome message done");
 
     if (state::getSubState() == "normal") {
+        logger::log("normal main menu");
         // ↳ Options
         colour::cout("Options:\n", "DEFAULT");
         colour::cout("1: Enable or Disable mods\n", "DEFAULT");
@@ -224,7 +233,7 @@ void MAIN_MENU() {
 
         // ↳ Exit option
         colour::cout("q: Exit\n\n", "DEFAULT");
-        logger::log({"main.cpp", "MAIN_MENU"}, "Displayed welcome text.");
+        logger::log("Displayed welcome text.");
 
         // ↳ Prompt user
         auto validateInput = [](std::string input) -> bool {
@@ -266,23 +275,24 @@ void MAIN_MENU() {
                     state::updateState("changeModsFolder", "main");
                     break;
                 default:
-                    logger::error({"main.cpp", "MAIN_MENU"}, "User input incorrectly accepcted not from 0 to 5");
+                    logger::critical("User input incorrectly accepcted not from 0 to 5");
                     exitOnEnterPress(1, "User answer has been incorrectly accepted even though it was out of bounds.");
             }
         } catch (const std::invalid_argument &e) {
             if (choiceStr != "q") {
-                logger::error({"main.cpp", "MAIN_MENU"}, "User input incorrectly accepted.");
+                logger::critical("User input incorrectly accepted.");
                 exitOnEnterPress(1, "User input accepted incorrectly.");
             }
             state::updateState("exit", "");
         }
+        logger::functionExit();
         return;
     }
 
     if (state::getSubState() == "warn") {
         colour::cout("It seems like some important files have not been found. Please change your mods folder or create the needed files.\n", std::array<int, 3>{255, 130, 0});
         colour::cout("(blacklist.txt, favorites.txt, modpresets.txt)\n\n", std::array<int, 3>{255, 130, 0});
-        logger::warn({"main.cpp", "MAIN_MENU"}, "Displayer mein menu warning text");
+        logger::warn("warning main menu");
 
         colour::cout("Options:\n", "DEFAULT");
         colour::cout("1: Change mods folder (Currently set to: ", "DEFAULT");
@@ -306,16 +316,23 @@ void MAIN_MENU() {
 
         std::string choiceStr = ask("Input the corresponding number to select an option:", validateInput, subsequent);
 
+        if (!validateInput(choiceStr)) {
+            logger::critical("User input incorrectly accepted.");
+            exitOnEnterPress(1, "User input accepted incorrectly.");
+        }
+
         if (choiceStr == "1") {
             state::updateState("changeModsFolder", "main");
         } else if (choiceStr == "q") {
             state::updateState("exit", "main");
         }
     }
+    logger::functionExit();
 }
 
 // Change Mods Folder
 void CHANGE_MODS_FOLDER() {
+    logger::functionCall("CHANGE_MODS_FOLDER", {});
     // ↳ Display Text
     // ↳ General info
     cls();
@@ -326,6 +343,7 @@ void CHANGE_MODS_FOLDER() {
     // ↳ How to find the correct folder
     colour::cout("\nYou can find your mods folder by opening Olympus -> \"Manage Installed Mods\" -> (near the top) Open Mods Folder -> (In file explorer) Copy file path -> Paste it in the prompt\n\n", "YELLOW");
     colour::cout("Alternatively, you can enter \"q\" to go back to the main menu.", "YELLOW");
+    logger::log("General info printed");
 
     // ↳ Prompt user
     // ↳ Wait for user input (A)
@@ -340,14 +358,21 @@ void CHANGE_MODS_FOLDER() {
 
     // ↳ If correct
     std::string filePath = ask("Please paste in the folder path here.", validation, subsequent);
+    if (!validation(filePath)) {
+        logger::critical("User input incorrectly accepted.");
+        exitOnEnterPress(1, "User input accepted incorrectly.");
+    }
+
     if (filePath != "q") {
         // ↳ RUN  <Setup>
         settings::updateSettings("modsFolderPath", filePath);
         setup();
     }
+
     // ↳ GOTO <Main Menu>
     // ↳ Else goto(A)
     state::returnToPreviousState();
+    logger::functionExit();
     return;
 }
 
@@ -389,6 +414,7 @@ void CHANGE_MODS_FOLDER() {
 // Edit favorite.txt
 // TODO: Add logging
 void EDIT_FAVORITES_TXT() {
+    logger::functionCall("EDIT_FAVORITES_TXT", {});
     // ↳ Display general info
     cls();
     colour::cout("This is where you can toggle if the mods are in the favourites list.\n\n", "YELLOW");
@@ -400,6 +426,7 @@ void EDIT_FAVORITES_TXT() {
     }
 
     printModsList(allMods);
+    logger::log("Printed favrite mods");
 
     auto validation = [allMods](const std::string &input) -> bool {
         try {
@@ -422,6 +449,10 @@ void EDIT_FAVORITES_TXT() {
     // ↳ Prompt user (A)
     // ↳ Validate user input
     std::string choice = ask("\nEnter the number corresponding to the mod you want to toggle, \"q\" to go back, or \"h\" for the help center.", validation, subsequent);
+    if (!validation(choice)) {
+        logger::critical("User input incorrectly accepted.");
+        exitOnEnterPress(1, "User input accepted incorrectly.");
+    }
     try {
         // ↳ If number edit the list
         int choiceNum = std::stoi(choice);
@@ -429,11 +460,13 @@ void EDIT_FAVORITES_TXT() {
         mods.at(allMods[choiceNum].first).setIsFavorite(!mods.at(allMods[choiceNum].first).getIsFavorite());
         // ↳ If done
         // ↳ TODO: Write to favorites.txt
+        logger::functionExit();
         return;
     } catch (const std::invalid_argument &e) {
         if (choice == "q") {
             // ↳ GOTO <Main Menu>
             state::returnToPreviousState();
+            logger::functionExit();
             return;
         }
 
@@ -441,6 +474,7 @@ void EDIT_FAVORITES_TXT() {
         if (choice == "h") {
             // ↳ GOTO <Help Centre, edit favorites.txt, [favorites.txt]>
             state::updateState("helpCentre", "editFavoritesTxt");
+            logger::functionExit();
             return;
         }
     }
@@ -491,10 +525,12 @@ void EDIT_FAVORITES_TXT() {
 // ↳ If help, GOTO <Help centre, edit preset remove, [Edit presets, edit]>
 
 void turnOnMod(const std::string &modName) {
+    logger::functionCall("turnOnMod", {modName});
     mods.at(modName).setIsEnabled(true);
-    logger::log({"main.cpp", "turnOnMod"}, "Turned on " + modName);
+    logger::log("Turned on " + modName);
 
     if (mods.at(modName).getDependencies().size() < 1) {
+        logger::functionExit();
         return;
     }
 
@@ -505,6 +541,7 @@ void turnOnMod(const std::string &modName) {
 
 // Enable or Disable mods
 void ENABLE_OR_DISABLE_MODS() {
+    logger::functionCall("ENABLE_OR_DISABLE_MODS", {});
     std::vector<std::pair<std::string, bool>> favMods = {};
     int i = 1;
     for (const auto &[modName, modAttribute] : mods) {
@@ -513,7 +550,7 @@ void ENABLE_OR_DISABLE_MODS() {
         }
         i++;
     }
-    logger::log({"main.cpp", "ENABLE_OR_DISABLE_MODS"}, "Set favMods list");
+    logger::log("Set favMods list");
 
     // ↳ Display general info
     cls();
@@ -526,6 +563,7 @@ void ENABLE_OR_DISABLE_MODS() {
 
     // ↳ Display favorites list
     printModsList(favMods);
+    logger::log("Displayed text");
 
     int numOfMods = 0;
     for (const auto &[key, value] : mods) {
@@ -533,7 +571,7 @@ void ENABLE_OR_DISABLE_MODS() {
             numOfMods++;
         }
     }
-    logger::log({"main.cpp", "ENABLE_OR_DISABLE_MODS"}, "Counted enabled mods");
+    logger::log("Counted enabled mods");
 
     colour::cout("\nYou currently have ", "DEFAULT");
     colour::cout(std::to_string(numOfMods), "CYAN");
@@ -561,6 +599,10 @@ void ENABLE_OR_DISABLE_MODS() {
     // ↳ Prompt user (A)
     // ↳ Validate user input
     std::string choice = ask("Enter the number corresponding to the mod you want to toggle, \"q\" to go back, or \"h\" for the help center.", validation, subsequent);
+    if (!validation(choice)) {
+        logger::critical("User input incorrectly accepted.");
+        exitOnEnterPress(1, "User input accepted incorrectly.");
+    }
     try {
         // ↳ if number, RUN togglemod
         int chosenMod = std::stoi(choice) - 1;
@@ -584,13 +626,15 @@ void ENABLE_OR_DISABLE_MODS() {
         if (choice == "q") {
             // ↳ TODO: if exit, write to blacklist.txt
             state::returnToPreviousState();
-            logger::log({"main.cpp", "ENABLE_OR_DISABLE_MODS"}, "Exit");
+            logger::log("Exit");
+            logger::functionExit();
             return;
 
         } else if (choice == "h") {
             // ↳ if help, GOTO <Help centre, enable or diable mods, [enable or disable mods]>
             state::updateState("helpCenter", "enableOrDisableMods");
-            logger::log({"main.cpp", "ENABLE_OR_DISABLE_MODS"}, "Go to help center");
+            logger::log("Go to help center");
+            logger::functionExit();
             return;
         }
     }
@@ -610,10 +654,11 @@ int main() {
         } else if (state::getState() == "exit") {
             break;
         } else {
-            logger::error({"main.cpp", "main"}, "An invalid state, " + state::getState() + ", was found.");
+            logger::error("An invalid state, " + state::getState() + ", was found.");
             exitOnEnterPress(1, "An invalid state has been found.");
         }
     }
-    logger::log({"main.cpp", "main"}, "Goodbye!");
+    logger::log("Goodbye!");
+    logger::functionExit();
     return 0;
 }

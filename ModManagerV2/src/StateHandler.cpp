@@ -7,33 +7,36 @@ static std::string substate;
 static std::stack<std::pair<std::string, std::string>> tracker;
 
 void updateState(const std::string &newState, const std::string &newSubstate) {
+    logger::functionCall("state::updateState", {newState, newSubstate});
     tracker.push({state, substate});
     state = newState;
     substate = newSubstate;
-    logger::log({"StateHandler.cpp", "state::updateState"}, "State updated to " + newState + ", " + newSubstate);
+    logger::log("State updated to " + newState + ", " + newSubstate);
+    logger::functionExit();
 }
 
 void setState(const std::string &newState, const std::string &newSubstate, std::stack<std::pair<std::string, std::string>> newTracker) {
+    logger::functionCall("state::setState", {newState, newSubstate, anyToString(newTracker)});
     state = newState;
     substate = newSubstate;
-    logger::log({"StateHandler.cpp", "state::setState"}, "State set to " + newState + ", " + newSubstate);
-    std::string loggerText = "";
-    while (!newTracker.empty()) {
-        const auto &state = newTracker.top();
-        loggerText += state.first + ", " + state.second + " -> ";
-        newTracker.pop();
-    }
-    logger::log({"StateHandler.cpp", "state::setState"}, "Tracker set to " + loggerText);
+    logger::log("State set to " + newState + ", " + newSubstate);
+    tracker = newTracker;
+    logger::log("Tracker set to " + anyToString(newTracker));
+    logger::functionExit();
 }
 
 void returnToPreviousState() {
+    logger::functionCall("state::returnToPreviousState", {});
     if (tracker.empty()) {
-        logger::error({"StateHandler.cpp", "state::returnToPreviousState"}, "Tracker is empty, cannot return to previous state");
+        logger::critical("Tracker is empty, cannot return to previous state");
         throw std::runtime_error("Tracker is empty, cannot return to previous state");
     }
+
     state = tracker.top().first;
     substate = tracker.top().second;
     tracker.pop();
+    logger::log("State and tracker set");
+    logger::functionExit();
 }
 
 std::string getState() {
