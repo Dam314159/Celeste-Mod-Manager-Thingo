@@ -1,7 +1,5 @@
 #include "Logger.h"
 
-// TODO: Revamp the logging methods
-
 fs::path logFilePath = fs::current_path() / "log.txt";
 auto start = std::chrono::system_clock::now();
 std::vector<std::string> callStack = {"main"};
