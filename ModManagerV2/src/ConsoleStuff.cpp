@@ -18,13 +18,13 @@ void cout(const std::string &text, const std::string &colour) {
 }
 
 void cout(const std::string &text, const std::array<int, 3> &colour) {
-    if (0 <= colour[0] && colour[0] <= 255) {
+    if (!(0 <= colour[0] && colour[0] <= 255)) {
         logger::warn("R value is out of bounds while printing " + text);
     }
-    if (0 <= colour[1] && colour[1] <= 255) {
+    if (!(0 <= colour[1] && colour[1] <= 255)) {
         logger::warn("G value is out of bounds while printing " + text);
     }
-    if (0 <= colour[2] && colour[2] <= 255) {
+    if (!(0 <= colour[2] && colour[2] <= 255)) {
         logger::warn("B value is out of bounds while printing " + text);
     }
 
@@ -36,13 +36,13 @@ void cerr(const std::string &text, const std::string &colour) {
 }
 
 void cerr(const std::string &text, const std::array<int, 3> &colour) {
-    if (0 <= colour[0] && colour[0] <= 255) {
+    if (!(0 <= colour[0] && colour[0] <= 255)) {
         logger::warn("R value is out of bounds while printing " + text);
     }
-    if (0 <= colour[1] && colour[1] <= 255) {
+    if (!(0 <= colour[1] && colour[1] <= 255)) {
         logger::warn("G value is out of bounds while printing " + text);
     }
-    if (0 <= colour[2] && colour[2] <= 255) {
+    if (!(0 <= colour[2] && colour[2] <= 255)) {
         logger::warn("B value is out of bounds while printing " + text);
     }
 
@@ -119,7 +119,6 @@ void printModsList(std::vector<std::pair<std::string, bool>> modsList) {
         }
         i++;
     }
-    logger::functionExit();
 }
 
 std::string anyToString(const std::any &value) {

@@ -97,6 +97,7 @@ std::set<std::string> extractDependenciesFromZip(const fs::path &zipFilePath) {
 // f : Setup
 std::map<std::string, ModAttribute> mods;
 std::map<std::string, std::set<std::string>> modPresets;
+fs::path modsFolderPath;
 void setup() {
     colour::cout("Loading...", "MAGENTA");
 
@@ -112,7 +113,7 @@ void setup() {
     modPresets = {};
 
     // ↳ Check if mods folder path is set correctly
-    fs::path modsFolderPath = settings::getSettings()["modsFolderPath"];
+    modsFolderPath = settings::getSettings()["modsFolderPath"].get<std::string>();
     if (!fs::exists(modsFolderPath)) {
         logger::log("Mods folder path not found or does not exist.");
         colour::cout("It seems like your mods folder is not specified or does not exist. Please enter your mods folder path below.\n", "DEFAULT");
@@ -412,7 +413,6 @@ void CHANGE_MODS_FOLDER() {
 // ↳ Return user based on tracker
 
 // Edit favorite.txt
-// TODO: Add logging
 void EDIT_FAVORITES_TXT() {
     logger::functionCall("EDIT_FAVORITES_TXT", {});
     // ↳ Display general info
@@ -420,27 +420,27 @@ void EDIT_FAVORITES_TXT() {
     colour::cout("This is where you can toggle if the mods are in the favourites list.\n\n", "YELLOW");
 
     // ↳ Display list of mods "[x] modsname"
-    std::vector<std::pair<std::string, bool>> allMods;
+    std::vector<std::pair<std::string, bool>> allModsFav;
     for (const auto &[key, value] : mods) {
-        allMods.push_back({key, value.getIsFavorite()});
+        allModsFav.push_back({key, value.getIsFavorite()});
     }
 
-    printModsList(allMods);
-    logger::log("Printed favrite mods");
+    printModsList(allModsFav);
+    logger::log("Printed favorite mods");
 
-    auto validation = [allMods](const std::string &input) -> bool {
+    auto validation = [allModsFav](const std::string &input) -> bool {
         try {
             int choice = std::stoi(input);
-            return 1 <= choice && choice <= allMods.size();
+            return 1 <= choice && choice <= allModsFav.size();
         } catch (const std::invalid_argument &e) {
             return input == "q" || input == "h";
         }
     };
 
-    auto subsequent = [allMods](const std::string &input) -> std::string {
+    auto subsequent = [allModsFav](const std::string &input) -> std::string {
         try {
             int choice = std::stoi(input);
-            return "Please enter a number from 1 to " + std::to_string(allMods.size());
+            return "Please enter a number from 1 to " + std::to_string(allModsFav.size());
         } catch (const std::invalid_argument &e) {
             return "Enter a number, \"q\" to go back, or \"h\" for help.";
         }
@@ -457,9 +457,26 @@ void EDIT_FAVORITES_TXT() {
         // ↳ If number edit the list
         int choiceNum = std::stoi(choice);
         choiceNum--;
-        mods.at(allMods[choiceNum].first).setIsFavorite(!mods.at(allMods[choiceNum].first).getIsFavorite());
+        std::string selectedModName = allModsFav[choiceNum].first;
+        logger::log(selectedModName);
+        logger::log(anyToString(mods.at(selectedModName).getIsFavorite()));
+        mods.at(selectedModName).setIsFavorite(!mods.at(selectedModName).getIsFavorite());
+        allModsFav[choiceNum].second = !allModsFav[choiceNum].second;
         // ↳ If done
         // ↳ TODO: Write to favorites.txt
+        std::stringstream outputFavs;
+        outputFavs << "# This is the favorite list. Lines starting with # are ignored.\n\n";
+        for (const auto &[modName, isFav] : allModsFav) {
+            logger::log(modName + anyToString(isFav));
+            if (isFav) {
+                outputFavs << modName << "\n";
+            }
+        }
+        fs::remove(modsFolderPath / "favorites.txt");
+        std::ofstream favoritesTxt(modsFolderPath / "favorites.txt", std::ios::app);
+        favoritesTxt << outputFavs.str();
+        favoritesTxt.close();
+
         logger::functionExit();
         return;
     } catch (const std::invalid_argument &e) {
