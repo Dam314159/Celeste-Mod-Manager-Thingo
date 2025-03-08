@@ -151,6 +151,9 @@ void setup() {
             if (line[0] == '#' || line.length() < 1) {
                 continue;
             }
+            if (mods.find(line) == mods.end()) {
+                continue;
+            }
 
             mods[line].setIsFavorite(true);
             logger::log("favorited " + line + " from favorites.txt.");
@@ -166,6 +169,10 @@ void setup() {
     if (blacklistTxt.is_open()) {
         for (std::string line; std::getline(blacklistTxt, line);) {
             if (line[0] == '#' || line.length() < 1) {
+                continue;
+            }
+
+            if (mods.find(line) == mods.end()) {
                 continue;
             }
 
@@ -458,31 +465,26 @@ void EDIT_FAVORITES_TXT() {
         int choiceNum = std::stoi(choice);
         choiceNum--;
         std::string selectedModName = allModsFav[choiceNum].first;
-        logger::log(selectedModName);
-        logger::log(anyToString(mods.at(selectedModName).getIsFavorite()));
         mods.at(selectedModName).setIsFavorite(!mods.at(selectedModName).getIsFavorite());
-        allModsFav[choiceNum].second = !allModsFav[choiceNum].second;
-        // ↳ If done
-        // ↳ TODO: Write to favorites.txt
-        std::stringstream outputFavs;
-        outputFavs << "# This is the favorite list. Lines starting with # are ignored.\n\n";
-        for (const auto &[modName, isFav] : allModsFav) {
-            logger::log(modName + anyToString(isFav));
-            if (isFav) {
-                outputFavs << modName << "\n";
-            }
-        }
-        fs::remove(modsFolderPath / "favorites.txt");
-        std::ofstream favoritesTxt(modsFolderPath / "favorites.txt", std::ios::app);
-        favoritesTxt << outputFavs.str();
-        favoritesTxt.close();
-
         logger::functionExit();
         return;
     } catch (const std::invalid_argument &e) {
         if (choice == "q") {
+            std::stringstream outputFavs;
+            outputFavs << "# This is the favorite list. Lines starting with # are ignored.\n\n";
+            for (const auto &[modName, isFav] : allModsFav) {
+                if (isFav) {
+                    outputFavs << modName << "\n";
+                }
+            }
+            fs::remove(modsFolderPath / "favorites.txt");
+            std::ofstream favoritesTxt(modsFolderPath / "favorites.txt", std::ios::app);
+            favoritesTxt << outputFavs.str();
+            favoritesTxt.close();
+
             // ↳ GOTO <Main Menu>
             state::returnToPreviousState();
+            logger::log("exit");
             logger::functionExit();
             return;
         }
@@ -491,6 +493,7 @@ void EDIT_FAVORITES_TXT() {
         if (choice == "h") {
             // ↳ GOTO <Help Centre, edit favorites.txt, [favorites.txt]>
             state::updateState("helpCentre", "editFavoritesTxt");
+            logger::log("go to help center");
             logger::functionExit();
             return;
         }
@@ -541,19 +544,29 @@ void EDIT_FAVORITES_TXT() {
 // ↳ If exit, GOTO <Edit Presets, main>
 // ↳ If help, GOTO <Help centre, edit preset remove, [Edit presets, edit]>
 
-void turnOnMod(const std::string &modName) {
+std::vector<std::string> turnOnMod(const std::string &modName, std::vector<std::string> &missing) {
     logger::functionCall("turnOnMod", {modName});
-    mods.at(modName).setIsEnabled(true);
+    // TODO: Handle the case for when the dependency is not there
+    try {
+        mods.at(modName).setIsEnabled(true);
+    } catch (const std::out_of_range &e) {
+        missing.push_back(modName);
+        logger::warn(modName + " not found");
+        logger::functionExit();
+        return missing;
+    }
     logger::log("Turned on " + modName);
 
     if (mods.at(modName).getDependencies().size() < 1) {
         logger::functionExit();
-        return;
+        return missing;
     }
 
     for (const auto &dependencyName : mods.at(modName).getDependencies()) {
-        turnOnMod(dependencyName);
+        turnOnMod(dependencyName, missing);
     }
+    logger::functionExit();
+    return missing;
 }
 
 // Enable or Disable mods
@@ -631,17 +644,40 @@ void ENABLE_OR_DISABLE_MODS() {
         }
 
         // For favourite mod installed, enable all mods and dependencies
+        std::vector<std::string> missingDependencies = {};
         for (const auto &favMod : favMods) {
             if (!favMod.second) {
                 continue;
             }
-
-            turnOnMod(favMod.first);
+            std::vector<std::string> currentMissing = turnOnMod(favMod.first, missingDependencies);
+            missingDependencies.insert(missingDependencies.end(), currentMissing.begin(), currentMissing.end());
         }
+
+        // TODO: make this printing more better lmao
+        logger::warn("These mods are missing.");
+        for (const std::string &missingName : missingDependencies) {
+            logger::warn(missingName);
+        }
+
+        logger::functionExit();
 
     } catch (const std::invalid_argument &e) {
         if (choice == "q") {
-            // ↳ TODO: if exit, write to blacklist.txt
+            std::stringstream outputBlacklist;
+            outputBlacklist << "# This is the blacklist. Lines starting with # are ignored.\n";
+            outputBlacklist << "# File generated through the \"Manage Installed Mods\" screen in Olympus\n\n";
+            for (const auto &[modName, attribute] : mods) {
+                if (attribute.getIsEnabled()) {
+                    outputBlacklist << "# " << modName << "\n";
+                } else {
+                    outputBlacklist << modName << "\n";
+                }
+            }
+            fs::remove(modsFolderPath / "blacklist.txt");
+            std::ofstream favoritesTxt(modsFolderPath / "blacklist.txt", std::ios::app);
+            favoritesTxt << outputBlacklist.str();
+            favoritesTxt.close();
+
             state::returnToPreviousState();
             logger::log("Exit");
             logger::functionExit();
