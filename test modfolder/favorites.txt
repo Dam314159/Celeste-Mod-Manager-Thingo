@@ -1,1 +1,0 @@
-# This is the favorite list. Lines starting with # are ignored.

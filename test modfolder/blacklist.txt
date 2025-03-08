@@ -1,2 +1,0 @@
-# This is the blacklist. Lines starting with # are ignored.
-# File generated through the "Manage Installed Mods" screen in Olympus
